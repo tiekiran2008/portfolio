@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { usePortfolio, Project, Skill, Experience } from '../context/PortfolioContext';
-import { Plus, Trash2, Save, X, LogOut } from 'lucide-react';
+import { Plus, Trash2, Save, X, LogOut, Upload, Image as ImageIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
@@ -119,6 +119,22 @@ export const AdminPanel: React.FC = () => {
     });
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, id: string, type: 'projects' | 'experience', field: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64String = reader.result as string;
+      if (type === 'projects') {
+        handleProjectChange(id, field as keyof Project, base64String);
+      } else {
+        handleExperienceChange(id, field as keyof Experience, base64String);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleRemoveMessage = async (id: string) => {
     const updatedMessages = (localData.messages || []).filter(m => m.id !== id);
     setLocalData({ ...localData, messages: updatedMessages });
@@ -213,6 +229,36 @@ export const AdminPanel: React.FC = () => {
                       className="bg-black/50 border border-gray-700 rounded p-2 text-white focus:border-[#00FFAB] outline-none"
                       placeholder="GitHub Link"
                     />
+                    <div className="md:col-span-2 flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-black/30 p-4 rounded border border-gray-800">
+                      <div className="flex-1 w-full">
+                        <label className="text-xs text-gray-500 mb-1 block">Project Image URL (or upload)</label>
+                        <input
+                          type="text"
+                          value={project.image || ''}
+                          onChange={(e) => handleProjectChange(project.id, 'image', e.target.value)}
+                          className="w-full bg-black/50 border border-gray-700 rounded p-2 text-white focus:border-[#00FFAB] outline-none"
+                          placeholder="Image URL"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 text-sm">OR</span>
+                        <label className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-[#00FFAB] rounded transition-colors whitespace-nowrap border border-gray-700">
+                          <Upload className="w-4 h-4" />
+                          <span>Upload Base64</span>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={(e) => handleImageUpload(e, project.id, 'projects', 'image')}
+                          />
+                        </label>
+                      </div>
+                      {project.image && (
+                        <div className="w-12 h-12 rounded border border-gray-700 overflow-hidden shrink-0 bg-black/50 flex items-center justify-center">
+                          <img src={project.image} alt="Preview" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                    </div>
                     <textarea
                       value={project.description}
                       onChange={(e) => handleProjectChange(project.id, 'description', e.target.value)}
@@ -295,6 +341,36 @@ export const AdminPanel: React.FC = () => {
                       className="bg-black/50 border border-gray-700 rounded p-2 text-white focus:border-[#00FFAB] outline-none md:col-span-2"
                       placeholder="Period (e.g. 2023 - Present)"
                     />
+                    <div className="md:col-span-2 flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-black/30 p-4 rounded border border-gray-800">
+                      <div className="flex-1 w-full">
+                        <label className="text-xs text-gray-500 mb-1 block">Company Logo URL (or upload)</label>
+                        <input
+                          type="text"
+                          value={exp.logo || ''}
+                          onChange={(e) => handleExperienceChange(exp.id, 'logo', e.target.value)}
+                          className="w-full bg-black/50 border border-gray-700 rounded p-2 text-white focus:border-[#00FFAB] outline-none"
+                          placeholder="Logo URL"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 text-sm">OR</span>
+                        <label className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-[#00FFAB] rounded transition-colors whitespace-nowrap border border-gray-700">
+                          <Upload className="w-4 h-4" />
+                          <span>Upload Base64</span>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={(e) => handleImageUpload(e, exp.id, 'experience', 'logo')}
+                          />
+                        </label>
+                      </div>
+                      {exp.logo && (
+                        <div className="w-12 h-12 rounded border border-gray-700 overflow-hidden shrink-0 bg-white flex items-center justify-center p-1">
+                          <img src={exp.logo} alt="Preview" className="w-full h-full object-contain" />
+                        </div>
+                      )}
+                    </div>
                     <textarea
                       value={exp.description}
                       onChange={(e) => handleExperienceChange(exp.id, 'description', e.target.value)}

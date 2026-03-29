@@ -8,6 +8,7 @@ export interface Project {
   techStack: string[];
   demoLink: string;
   githubLink: string;
+  image?: string;
 }
 
 export interface Skill {
@@ -57,7 +58,8 @@ const defaultData: PortfolioData = {
       description: 'The AI Digital Fatigue & Focus Optimization System is a beginner-friendly AI project that analyzes screen-time behavior, focus level, and tiredness data to detect digital fatigue and provide smart work–break recommendations.',
       techStack: ['Python', 'Numpy', 'Pandas', 'Matplotlib', 'Git & Github'],
       demoLink: '#',
-      githubLink: 'https://github.com/tiekiran2008/AI-Digital-Fatigue-System/commit/86135671610ae0f4475c8cffcfefdaf2fb39ea5e'
+      githubLink: 'https://github.com/tiekiran2008/AI-Digital-Fatigue-System/commit/86135671610ae0f4475c8cffcfefdaf2fb39ea5e',
+      image: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&q=80&w=1000'
     }
   ],
   skills: [

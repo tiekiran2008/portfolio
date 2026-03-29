@@ -81,8 +81,15 @@ const ProjectCard: React.FC<{ project: Project, index: number, onClick: () => vo
         onClick={onClick}
         className="glass-panel p-8 rounded-2xl cursor-pointer group relative overflow-hidden h-full flex flex-col justify-between border border-gray-800"
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-[#00FFAB]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#00FFAB]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0" />
         
+        {project.image && (
+          <div className="absolute inset-x-0 top-0 h-32 opacity-20 group-hover:opacity-40 transition-opacity duration-500 z-0 overflow-hidden rounded-t-2xl">
+            <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#05070A] to-transparent"></div>
+          </div>
+        )}
+
         {particles.map(p => (
           <motion.div
             key={p.id}
@@ -162,14 +169,21 @@ export const Projects: React.FC = () => {
             >
               <button
                 onClick={() => setSelectedProject(null)}
-                className="absolute top-6 right-6 p-2 rounded-full bg-gray-900/50 hover:bg-[#00FFAB]/20 text-gray-400 hover:text-[#00FFAB] transition-colors"
+                className="absolute top-6 right-6 p-2 rounded-full bg-gray-900/50 hover:bg-[#00FFAB]/20 text-gray-400 hover:text-[#00FFAB] transition-colors z-50"
               >
                 <X className="w-6 h-6" />
               </button>
 
-              <h2 className="text-3xl sm:text-5xl font-bold text-white mb-6 pr-12">{selectedProject.title}</h2>
+              {selectedProject.image && (
+                <div className="w-full h-64 sm:h-80 mb-8 rounded-2xl overflow-hidden relative border border-gray-800 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                  <img src={selectedProject.image} alt={selectedProject.title} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent"></div>
+                </div>
+              )}
+
+              <h2 className="text-3xl sm:text-5xl font-bold text-white mb-6 pr-12 relative z-10">{selectedProject.title}</h2>
               
-              <div className="flex flex-wrap gap-3 mb-8">
+              <div className="flex flex-wrap gap-3 mb-8 relative z-10">
                 {selectedProject.techStack.map((tech, i) => (
                   <span key={i} className="px-4 py-2 text-sm font-mono rounded-full bg-[#00FFAB]/10 border border-[#00FFAB]/30 text-[#00FFAB]">
                     {tech}

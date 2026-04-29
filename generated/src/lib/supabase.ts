@@ -4,7 +4,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase URL or Anon Key is missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables.');
+  console.info('[Supabase] Running in offline mode — VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY not set. Data will be stored locally.');
 }
 
 export const supabase = createClient(

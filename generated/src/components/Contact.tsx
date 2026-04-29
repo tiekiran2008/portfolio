@@ -203,7 +203,7 @@ export const Contact: React.FC = () => {
                 onBlur={handleBlur}
                 required
                 className={`w-full bg-[#05070A] border ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-800 focus:border-[#00FFAB] focus:ring-[#00FFAB]'} rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-1 transition-all`}
-                placeholder="John Doe"
+                placeholder="Enter your name here..."
               />
               {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
             </div>
@@ -221,7 +221,7 @@ export const Contact: React.FC = () => {
                 onBlur={handleBlur}
                 required
                 className={`w-full bg-[#05070A] border ${errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-800 focus:border-[#00FFAB] focus:ring-[#00FFAB]'} rounded-xl px-4 py-3.5 text-white focus:outline-none focus:ring-1 transition-all`}
-                placeholder="john@example.com"
+                placeholder="Enter your gmail here..."
               />
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>

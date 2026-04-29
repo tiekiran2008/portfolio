@@ -87,7 +87,7 @@ export default function App() {
       <Router>
         <Routes>
           <Route path="/" element={<MainPortfolio />} />
-          <Route path="/admin" element={
+          <Route path="/kiran-panel" element={
             <ProtectedRoute>
               <AdminPanel />
             </ProtectedRoute>

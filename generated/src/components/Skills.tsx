@@ -2,8 +2,6 @@ import React, { useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { usePortfolio } from '../context/PortfolioContext';
 import { SectionWrapper } from './SectionWrapper';
-import { DataVisualizer } from './DataVisualizer';
-
 const SkillCard: React.FC<{ category: string, skills: any[], index: number }> = ({ category, skills, index }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
@@ -104,7 +102,6 @@ export const Skills: React.FC = () => {
         ))}
       </div>
 
-      <DataVisualizer skills={data.skills} />
     </SectionWrapper>
   );
 };

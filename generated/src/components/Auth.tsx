@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '../lib/supabase';
-import { Lock, Mail, User } from 'lucide-react';
+import { Lock, Mail } from 'lucide-react';
 
 export const Auth: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -8,18 +7,35 @@ export const Auth: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  const hashPassword = async (password: string): Promise<string> => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
+      const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+      const adminPasswordHash = import.meta.env.VITE_ADMIN_PASSWORD_HASH;
+
+      if (!adminEmail || !adminPasswordHash) {
+        throw new Error('Admin credentials not configured. Check environment variables.');
+      }
+
       // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 600));
 
-      if (email === 'kiran08461kumar@gmail.com' && password === 'kiran1234567890kumar') {
+      const inputHash = await hashPassword(password);
+
+      if (email === adminEmail && inputHash === adminPasswordHash) {
         localStorage.setItem('admin_auth', 'true');
-        window.location.reload(); // Reload to let App.tsx pick up the local storage
+        window.location.reload();
       } else {
         throw new Error('Invalid login credentials');
       }

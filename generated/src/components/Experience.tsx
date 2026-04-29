@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { usePortfolio } from '../context/PortfolioContext';
 import { SectionWrapper } from './SectionWrapper';
+import { FileText } from 'lucide-react';
 
 export const Experience: React.FC = () => {
   const { data } = usePortfolio();
@@ -45,7 +46,13 @@ export const Experience: React.FC = () => {
                     }}
                     className="w-16 h-16 rounded-xl bg-white p-2 flex items-center justify-center shrink-0"
                   >
-                    <img src={exp.logo} alt={exp.company} className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                    {exp.logo.startsWith('data:application/pdf') ? (
+                      <a href={exp.logo} download={`${exp.company}-document.pdf`} className="flex flex-col items-center justify-center w-full h-full text-blue-600 hover:text-blue-800" title="Download PDF Document">
+                        <FileText className="w-8 h-8" />
+                      </a>
+                    ) : (
+                      <img src={exp.logo} alt={exp.company} className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                    )}
                   </motion.div>
                 )}
                 <div>

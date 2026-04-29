@@ -359,7 +359,7 @@ export const AdminPanel: React.FC = () => {
                           <span>Upload Base64</span>
                           <input 
                             type="file" 
-                            accept="image/*" 
+                            accept="image/*,.pdf" 
                             className="hidden" 
                             onChange={(e) => handleImageUpload(e, exp.id, 'experience', 'logo')}
                           />
@@ -367,7 +367,11 @@ export const AdminPanel: React.FC = () => {
                       </div>
                       {exp.logo && (
                         <div className="w-12 h-12 rounded border border-gray-700 overflow-hidden shrink-0 bg-white flex items-center justify-center p-1">
-                          <img src={exp.logo} alt="Preview" className="w-full h-full object-contain" />
+                          {exp.logo.startsWith('data:application/pdf') ? (
+                            <span className="text-[10px] text-black font-bold">PDF</span>
+                          ) : (
+                            <img src={exp.logo} alt="Preview" className="w-full h-full object-contain" />
+                          )}
                         </div>
                       )}
                     </div>

@@ -62,8 +62,11 @@ export const Auth: React.FC = () => {
         throw new Error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local');
       }
 
+      const siteUrl = (import.meta.env.VITE_SITE_URL || import.meta.env.NEXT_PUBLIC_SITE_URL || window.location.origin).replace(/\/$/, '');
+      const redirectTo = `${siteUrl}/kiran-panel`;
+
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/kiran-panel`,
+        redirectTo,
       });
 
       if (resetError) {

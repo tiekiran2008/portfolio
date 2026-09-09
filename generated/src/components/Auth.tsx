@@ -180,6 +180,11 @@ export const Auth: React.FC = () => {
                 <div className="p-4 rounded-xl bg-[#00FFAB]/10 border border-[#00FFAB]/20 text-gray-200 text-sm flex flex-col items-center gap-3">
                   <CheckCircle className="w-10 h-10 text-[#00FFAB]" />
                   <p className="leading-relaxed">{successMessage}</p>
+                  <div className="text-xs text-gray-400 border-t border-gray-800 pt-3 mt-1 text-left w-full space-y-1">
+                    <p className="font-semibold text-gray-300">Didn't get the email?</p>
+                    <p>• Check your Gmail <strong>Spam / Junk</strong> folder.</p>
+                    <p>• Ensure your email is registered in <strong>Supabase Auth → Users</strong>.</p>
+                  </div>
                 </div>
 
                 <button

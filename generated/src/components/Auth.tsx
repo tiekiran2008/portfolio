@@ -56,16 +56,19 @@ export const Auth: React.FC = () => {
     setSuccessMessage(null);
 
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
-        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/kiran-panel`,
-        });
-        if (resetError) throw resetError;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
+      
+      if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
+        throw new Error('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local');
       }
 
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 600));
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/kiran-panel`,
+      });
+
+      if (resetError) {
+        throw resetError;
+      }
 
       setSuccessMessage(`Password reset instructions have been sent to ${email}. Please check your inbox.`);
     } catch (err: any) {

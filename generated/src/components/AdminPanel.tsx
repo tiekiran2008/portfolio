@@ -4,6 +4,7 @@ import { usePortfolio, Project, Skill, Experience } from '../context/PortfolioCo
 import { Plus, Trash2, Save, X, LogOut, Upload, Image as ImageIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { signOut } from '../lib/adminAuth';
 
 export const AdminPanel: React.FC = () => {
   const { data, updateData } = usePortfolio();
@@ -16,8 +17,12 @@ export const AdminPanel: React.FC = () => {
   }, [data]);
 
   const handleSignOut = async () => {
-    localStorage.removeItem('admin_auth');
-    navigate('/');
+    try {
+      await signOut();
+      navigate('/');
+    } catch {
+      alert('Unable to sign out. Please try again.');
+    }
   };
 
   const handleSave = async () => {

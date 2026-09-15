@@ -1,45 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-
-export interface Project {
-  id: string;
-  title: string;
-  description: string;
-  techStack: string[];
-  demoLink: string;
-  githubLink: string;
-  image?: string;
-}
-
-export interface Skill {
-  id: string;
-  name: string;
-  category: string;
-}
-
-export interface Experience {
-  id: string;
-  role: string;
-  company: string;
-  period: string;
-  description: string;
-  logo?: string;
-}
-
-export interface Message {
-  id: string;
-  name: string;
-  email: string;
-  message: string;
-  date: string;
-}
-
-interface PortfolioData {
-  projects: Project[];
-  skills: Skill[];
-  experience: Experience[];
-  messages: Message[];
-}
+import { defaultData, type PortfolioData, type Project, type Skill, type Experience, type Message } from '../data/portfolio';
+import { normalizeProjects } from '../lib/projectData';
+export type { Project, Skill, Experience, Message } from '../data/portfolio';
 
 interface PortfolioContextType {
   data: PortfolioData;
@@ -49,56 +12,6 @@ interface PortfolioContextType {
   isHighContrastMode: boolean;
   toggleHighContrastMode: () => void;
 }
-
-const defaultData: PortfolioData = {
-  projects: [
-    {
-      id: '1',
-      title: 'AI_Digital_Fatigue_System',
-      description: 'The AI Digital Fatigue & Focus Optimization System is a beginner-friendly AI project that analyzes screen-time behavior, focus level, and tiredness data to detect digital fatigue and provide smart work–break recommendations.',
-      techStack: ['Python', 'Numpy', 'Pandas', 'Matplotlib', 'Git & Github'],
-      demoLink: '#',
-      githubLink: 'https://github.com/tiekiran2008/AI-Digital-Fatigue-System/commit/86135671610ae0f4475c8cffcfefdaf2fb39ea5e',
-      image: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&q=80&w=1000'
-    }
-  ],
-  skills: [
-    { id: '1', name: 'Python basics', category: 'PYTHON & LIBRARIES' },
-    { id: '2', name: 'Numpy', category: 'PYTHON & LIBRARIES' },
-    { id: '3', name: 'Pandas', category: 'PYTHON & LIBRARIES' },
-    { id: '4', name: 'Matplotlib', category: 'PYTHON & LIBRARIES' },
-    { id: '5', name: 'Flask', category: 'PYTHON & LIBRARIES' },
-    
-    { id: '6', name: 'Artificial Intelligence', category: 'AI & MACHINE LEARNING' },
-    { id: '7', name: 'Machine Learning', category: 'AI & MACHINE LEARNING' },
-    { id: '8', name: 'Deep Learning', category: 'AI & MACHINE LEARNING' },
-    { id: '9', name: 'AI Agents', category: 'AI & MACHINE LEARNING' },
-    { id: '10', name: 'Large Language Models', category: 'AI & MACHINE LEARNING' },
-    { id: '11', name: 'NLP', category: 'AI & MACHINE LEARNING' },
-    { id: '12', name: 'Neural Network', category: 'AI & MACHINE LEARNING' },
-    { id: '13', name: 'Pytorch', category: 'AI & MACHINE LEARNING' },
-    { id: '14', name: 'Tensorflow', category: 'AI & MACHINE LEARNING' },
-    
-    { id: '15', name: 'Git & Github', category: 'TOOLS & PLATFORMS' },
-    { id: '16', name: 'Google Colab', category: 'TOOLS & PLATFORMS' },
-    { id: '17', name: 'Jupyter Notebook', category: 'TOOLS & PLATFORMS' },
-    
-    { id: '18', name: 'Html', category: 'WEB DEVELOPMENT' },
-    { id: '19', name: 'Css', category: 'WEB DEVELOPMENT' },
-    { id: '20', name: 'Javascript', category: 'WEB DEVELOPMENT' },
-  ],
-  experience: [
-    {
-      id: '1',
-      role: 'AIML INTERN',
-      company: 'UPTOSKILLS',
-      period: 'Feb 23 - May 23, 2026',
-      description: 'Developing a strong foundation in Artificial Intelligence and Machine Learning concepts.\n\n~Gaining hands-on experience with AI/ML tools, technologies, and practical applications.\n\n~Collaborating on project-based tasks under the guidance of experienced mentors.',
-      logo: 'https://storage.googleapis.com/aistudio-user-uploads-us-central1/014c5770-0d32-411a-85b2-c07a3915f013/image_2025-03-02_151121852.png'
-    }
-  ],
-  messages: []
-};
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
 
@@ -110,8 +23,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     const savedData = localStorage.getItem('portfolioData_v4');
     if (savedData) {
-      const parsed = JSON.parse(savedData);
-      setData({ ...defaultData, ...parsed, messages: parsed.messages || [] });
+      try {
+        const parsed = JSON.parse(savedData);
+        setData({ ...defaultData, ...parsed, projects: normalizeProjects(parsed.projects ?? defaultData.projects), messages: parsed.messages || [] });
+      } catch { console.warn('Saved portfolio content could not be loaded. Using defaults.'); }
     }
 
     // Attempt to fetch data from Supabase
@@ -129,7 +44,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             if (projectsData.length > 0 || skillsData.length > 0 || experienceData.length > 0) {
               setData(prev => ({
                 ...prev,
-                projects: projectsData as Project[],
+                projects: normalizeProjects(projectsData),
                 skills: skillsData as Skill[],
                 experience: experienceData as Experience[],
                 messages: (!messagesError && messagesData) ? (messagesData as Message[]) : prev.messages
@@ -162,7 +77,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (e.key === 'portfolioData_v4' && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
-          setData(prev => ({ ...prev, ...parsed, messages: parsed.messages || prev.messages || [] }));
+          setData(prev => ({ ...prev, ...parsed, projects: normalizeProjects(parsed.projects ?? prev.projects), messages: parsed.messages || prev.messages || [] }));
         } catch (err) {
           console.error("Failed to parse storage data", err);
         }
@@ -176,7 +91,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const updateData = (newData: Partial<PortfolioData> | ((prev: PortfolioData) => Partial<PortfolioData>)) => {
     setData(prev => {
       const resolvedData = typeof newData === 'function' ? newData(prev) : newData;
-      const updated = { ...prev, ...resolvedData };
+      const updated = { ...prev, ...resolvedData, projects: normalizeProjects(resolvedData.projects ?? prev.projects) };
       localStorage.setItem('portfolioData_v4', JSON.stringify(updated));
       return updated;
     });

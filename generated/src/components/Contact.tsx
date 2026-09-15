@@ -1,3 +1,4 @@
+import { profile } from '../data/portfolio';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { z } from 'zod';
@@ -117,12 +118,13 @@ export const Contact: React.FC = () => {
         <div className="flex flex-col justify-center">
           <h3 className="text-3xl sm:text-4xl font-bold text-white mb-6">Get In Touch</h3>
           <p className="text-gray-400 text-lg leading-relaxed mb-10">
-            I'm currently open for new opportunities. Whether you have a question or just want to say hi, I'll try my best to get back to you!
+            {profile.contactIntro}
           </p>
           
-          <div className="flex gap-6" style={{ perspective: '1000px' }}>
+          <a href={`mailto:${profile.email}`} className="text-[#00FFAB] break-all mb-6">{profile.email}</a>
+          <div className="flex flex-wrap gap-6" style={{ perspective: '1000px' }}>
             <motion.a
-              href="https://www.instagram.com/tie_kiran_008_?igsh=MTdodWl3aTljaHlqaw=="
+              href={profile.social.instagram}
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ 
@@ -143,7 +145,7 @@ export const Contact: React.FC = () => {
               <Instagram className="w-7 h-7 transition-transform duration-300 group-hover:scale-125 group-hover:drop-shadow-[0_0_8px_rgba(225,48,108,0.8)]" style={{ transform: "translateZ(40px)" }} />
             </motion.a>
             <motion.a
-              href="https://github.com/tiekiran2008"
+              href={profile.social.github}
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ 
@@ -164,7 +166,7 @@ export const Contact: React.FC = () => {
               <Github className="w-7 h-7 transition-transform duration-300 group-hover:scale-125 group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" style={{ transform: "translateZ(40px)" }} />
             </motion.a>
             <motion.a
-              href="https://www.linkedin.com/in/e-kiran-kumar-24a27b372?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
+              href={profile.social.linkedin}
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ 

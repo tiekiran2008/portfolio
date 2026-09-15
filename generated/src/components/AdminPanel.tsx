@@ -33,7 +33,8 @@ export const AdminPanel: React.FC = () => {
       if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
         // Projects
         if (localData.projects.length > 0) {
-          await supabase.from('projects').upsert(localData.projects);
+          // Features are frontend-only until an existing database column is available.
+          await supabase.from('projects').upsert(localData.projects.map(({ features, ...project }) => project));
         }
         
         // Skills

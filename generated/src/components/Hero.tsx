@@ -1,20 +1,16 @@
+import { profile } from '../data/portfolio';
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Github, Linkedin, BrainCircuit } from 'lucide-react';
 
-const roles = [
-  'AI/ML Engineer',
-  'AI Agents Builder',
-  'Automation Expert',
-  'Intelligent Systems Builder'
-];
+const roles = profile.roles;
 
 export const Hero: React.FC = () => {
   const [currentRoleIndex, setCurrentRoleIndex] = useState(0);
   const [typedText, setTypedText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   
-  const fullName = "KIRAN KUMAR E";
+  const fullName = profile.name;
   const [typedName, setTypedName] = useState('');
 
   useEffect(() => {
@@ -56,7 +52,7 @@ export const Hero: React.FC = () => {
   }, [typedText, isDeleting, currentRoleIndex]);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 pb-10 px-6 sm:px-12 lg:px-24">
+    <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 pb-10 px-6 sm:px-12 lg:px-24">
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <motion.div
           initial={{ opacity: 0, x: -50 }}
@@ -84,7 +80,7 @@ export const Hero: React.FC = () => {
           </div>
 
           <p className="mt-6 text-gray-500 max-w-lg text-lg leading-relaxed">
-            Architecting the future through intelligent systems, autonomous agents, and scalable machine learning solutions.
+            {profile.tagline}
           </p>
 
           <div className="mt-10 flex flex-wrap gap-4 items-center">
@@ -106,8 +102,8 @@ export const Hero: React.FC = () => {
             >
               CONTACT ME
             </motion.a>
-            <motion.a
-              href="/resume.pdf"
+            {profile.resumeUrl && <motion.a
+              href={profile.resumeUrl}
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05 }}
@@ -115,7 +111,7 @@ export const Hero: React.FC = () => {
               className="px-8 py-3 rounded-md border border-gray-700 text-gray-300 font-mono hover:border-[#00FFAB] hover:text-[#00FFAB] transition-all duration-300"
             >
               RESUME
-            </motion.a>
+            </motion.a>}
           </div>
         </motion.div>
 

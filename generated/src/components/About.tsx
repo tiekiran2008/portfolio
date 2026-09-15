@@ -1,3 +1,4 @@
+import { profile } from '../data/portfolio';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Cpu, Brain, Globe } from 'lucide-react';
@@ -30,14 +31,14 @@ export const About: React.FC = () => {
           <HoverBox className="p-8">
             <h3 className="text-[#00FFAB] text-2xl font-bold mb-4 tracking-wide">Biography</h3>
             <p className="text-gray-300 text-lg leading-relaxed">
-              I'm KIRAN KUMAR E, an AI/ML Engineer focused on building intelligent and automated systems. Experienced in developing machine learning models, AI chatbots, and smart applications. Specialized in automation to reduce manual work and improve efficiency. Continuously learning and exploring advanced technologies in AI and automation.
+              {profile.biography}
             </p>
           </HoverBox>
           
           <HoverBox className="p-8">
             <h3 className="text-[#00FFAB] text-2xl font-bold mb-4 tracking-wide">Career Goals</h3>
             <p className="text-gray-300 text-lg leading-relaxed">
-              My goal is to combine AI/ML and automation to build smarter systems and launch innovative products in the future.
+              {profile.careerGoals}
             </p>
           </HoverBox>
         </div>
@@ -61,7 +62,7 @@ export const About: React.FC = () => {
               >
                 <Shield className="w-6 h-6" />
               </motion.div>
-              <span className="text-white font-medium text-base group-hover:text-[#00FFAB] transition-colors duration-300">AIML</span>
+              <span className="text-white font-medium text-base group-hover:text-[#00FFAB] transition-colors duration-300">{profile.focusAreas[0]}</span>
             </HoverBox>
             
             <HoverBox className="flex items-center gap-4 p-5">
@@ -79,7 +80,7 @@ export const About: React.FC = () => {
               >
                 <Cpu className="w-6 h-6" />
               </motion.div>
-              <span className="text-white font-medium text-base group-hover:text-[#00FFAB] transition-colors duration-300">AI AGENTS</span>
+              <span className="text-white font-medium text-base group-hover:text-[#00FFAB] transition-colors duration-300">{profile.focusAreas[1]}</span>
             </HoverBox>
             
             <HoverBox className="flex items-center gap-4 p-5">
@@ -97,7 +98,7 @@ export const About: React.FC = () => {
               >
                 <Brain className="w-6 h-6" />
               </motion.div>
-              <span className="text-white font-medium text-base group-hover:text-[#00FFAB] transition-colors duration-300">AUTOMATION</span>
+              <span className="text-white font-medium text-base group-hover:text-[#00FFAB] transition-colors duration-300">{profile.focusAreas[2]}</span>
             </HoverBox>
             
             <HoverBox className="flex items-center gap-4 p-5">
@@ -115,7 +116,7 @@ export const About: React.FC = () => {
               >
                 <Globe className="w-6 h-6" />
               </motion.div>
-              <span className="text-white font-medium text-base group-hover:text-[#00FFAB] transition-colors duration-300">WEB DEVELOPMENT</span>
+              <span className="text-white font-medium text-base group-hover:text-[#00FFAB] transition-colors duration-300">{profile.focusAreas[3]}</span>
             </HoverBox>
           </div>
         </div>

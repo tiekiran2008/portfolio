@@ -1,3 +1,4 @@
+import { navigation } from '../data/portfolio';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Contrast } from 'lucide-react';
@@ -6,14 +7,7 @@ import { usePortfolio } from '../context/PortfolioContext';
 export const Navbar: React.FC = () => {
   const { isHighContrastMode, toggleHighContrastMode } = usePortfolio();
 
-  const links = [
-    { name: 'Home', href: '#' },
-    { name: 'About', href: '#about' },
-    { name: 'Projects', href: '#projects' },
-    { name: 'Skills & Tools', href: '#skills' },
-    { name: 'Experience', href: '#experience' },
-    { name: 'Contact', href: '#contact' },
-  ];
+  const links = navigation;
 
   return (
     <motion.nav 
@@ -23,7 +17,7 @@ export const Navbar: React.FC = () => {
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="w-10 hidden lg:block"></div> {/* Spacer for centering */}
-        <ul className="flex items-center gap-6 sm:gap-12 overflow-x-auto no-scrollbar w-full justify-start lg:justify-center">
+        <ul className="flex items-center gap-5 sm:gap-7 overflow-x-auto no-scrollbar min-w-0 w-full justify-start lg:justify-center">
           {links.map((link) => (
             <li key={link.name}>
               <a 

@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom';
+import { safeLink } from '../lib/projectData';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { usePortfolio, Project } from '../context/PortfolioContext';
@@ -54,7 +56,7 @@ const ProjectCard: React.FC<{ project: Project, index: number, onClick: () => vo
 
   return (
     <div 
-      className="relative h-[300px]"
+      className="relative min-h-[300px] h-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
@@ -79,6 +81,8 @@ const ProjectCard: React.FC<{ project: Project, index: number, onClick: () => vo
           perspective: '1000px' 
         }}
         onClick={onClick}
+        role="button" tabIndex={0} aria-label={`View details for ${project.title}`}
+        onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onClick(); } }}
         className="glass-panel p-8 rounded-2xl cursor-pointer group relative overflow-hidden h-full flex flex-col justify-between border border-gray-800"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-[#00FFAB]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0" />
@@ -106,7 +110,7 @@ const ProjectCard: React.FC<{ project: Project, index: number, onClick: () => vo
           style={{ transform: isHovered ? "translateZ(40px)" : "translateZ(0px)" }}
         >
           <div className="flex justify-between items-start mb-4">
-            <h3 className="text-2xl font-bold text-white group-hover:text-[#00FFAB] transition-colors">{project.title}</h3>
+            <h3 className="text-2xl break-words min-w-0 font-bold text-white group-hover:text-[#00FFAB] transition-colors">{project.title}</h3>
             <ExternalLink className="w-5 h-5 text-gray-500 group-hover:text-[#00FFFF] transition-colors" />
           </div>
           <p className="text-gray-400 text-sm line-clamp-3 mb-6">{project.description}</p>
@@ -135,6 +139,25 @@ const ProjectCard: React.FC<{ project: Project, index: number, onClick: () => vo
 export const Projects: React.FC = () => {
   const { data } = usePortfolio();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!selectedProject) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialogRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedProject(null);
+      if (event.key !== 'Tab') return;
+      const nodes = dialogRef.current?.querySelectorAll<HTMLElement>('button, a[href]');
+      if (!nodes?.length) return;
+      const first = nodes[0], last = nodes[nodes.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => { document.body.style.overflow = overflow; document.removeEventListener('keydown', handleKey); previousFocus?.focus(); };
+  }, [selectedProject]);
 
   return (
     <>
@@ -150,13 +173,13 @@ export const Projects: React.FC = () => {
         </div>
       </SectionWrapper>
 
-      <AnimatePresence>
+      {createPortal(<AnimatePresence>
         {selectedProject && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-xl"
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-xl"
             onClick={() => setSelectedProject(null)}
           >
             <motion.div
@@ -164,10 +187,12 @@ export const Projects: React.FC = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="glass-panel w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl p-8 sm:p-12 relative border border-[#00FFAB]/30 shadow-[0_0_50px_rgba(0,255,171,0.1)]"
+              className="glass-panel w-full max-w-4xl max-h-[90dvh] overflow-y-auto overscroll-contain rounded-3xl p-5 sm:p-12 break-words relative border border-[#00FFAB]/30 shadow-[0_0_50px_rgba(0,255,171,0.1)]"
+              ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="project-detail-title"
               onClick={(e) => e.stopPropagation()}
             >
               <button
+                aria-label="Close project details"
                 onClick={() => setSelectedProject(null)}
                 className="absolute top-6 right-6 p-2 rounded-full bg-gray-900/50 hover:bg-[#00FFAB]/20 text-gray-400 hover:text-[#00FFAB] transition-colors z-50"
               >
@@ -181,7 +206,7 @@ export const Projects: React.FC = () => {
                 </div>
               )}
 
-              <h2 className="text-3xl sm:text-5xl font-bold text-white mb-6 pr-12 relative z-10">{selectedProject.title}</h2>
+              <h2 id="project-detail-title" className="text-3xl sm:text-5xl font-bold text-white mb-6 pr-12 relative z-10">{selectedProject.title}</h2>
               
               <div className="flex flex-wrap gap-3 mb-8 relative z-10">
                 {selectedProject.techStack.map((tech, i) => (
@@ -191,25 +216,30 @@ export const Projects: React.FC = () => {
                 ))}
               </div>
 
-              <p className="text-gray-300 text-lg leading-relaxed mb-12">
+              <p className="text-gray-300 text-lg whitespace-pre-line leading-relaxed mb-8">
                 {selectedProject.description}
               </p>
 
-              <div className="flex flex-wrap gap-6">
-                <a
-                  href={selectedProject.githubLink}
+              {Boolean(selectedProject.features?.length) && <div className="mb-8">
+                <h3 className="text-xl text-white font-bold mb-3">Features</h3>
+                <ul className="list-disc pl-5 space-y-2 text-gray-300">{selectedProject.features!.map((feature, index) => <li key={index}>{feature}</li>)}</ul>
+              </div>}
+              <div className="flex flex-wrap gap-4">
+                {safeLink(selectedProject.githubLink) && <a
+                  href={safeLink(selectedProject.githubLink)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-8 py-4 rounded-xl bg-[#00FFAB] text-black font-bold hover:bg-[#00FFFF] transition-colors shadow-[0_0_20px_rgba(0,255,171,0.4)]"
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[#00FFAB] text-black font-bold hover:bg-[#00FFFF] transition-colors shadow-[0_0_20px_rgba(0,255,171,0.4)]"
                 >
                   <Github className="w-5 h-5" />
                   GITHUB
-                </a>
+                </a>}
+                {safeLink(selectedProject.demoLink) && <a href={safeLink(selectedProject.demoLink)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-3 rounded-xl border border-[#00FFAB] text-[#00FFAB] font-bold hover:bg-[#00FFAB]/10"><ExternalLink className="w-5 h-5 shrink-0" />LIVE DEMO</a>}
               </div>
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>, document.body)}
     </>
   );
 };

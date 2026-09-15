@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { Lock, Mail, ArrowLeft, CheckCircle, KeyRound } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import { ADMIN_PATH, RECOVERY_PATH, finishRecovery, updateRecoveryPassword, isAdmin } from '../lib/adminAuth';
+import { useNavigate } from 'react-router-dom';
 
 export const Auth: React.FC = () => {
+  const auth = useAuth();
+  const navigate = useNavigate();
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [mode, setMode] = useState<'login' | 'forgot'>('login');
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -10,40 +16,56 @@ export const Auth: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const hashPassword = async (password: string): Promise<string> => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  };
-
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
     try {
-      const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
-      const adminPasswordHash = import.meta.env.VITE_ADMIN_PASSWORD_HASH;
-
-      if (!adminEmail || !adminPasswordHash) {
-        throw new Error('Admin credentials not configured. Check environment variables.');
+      const adminEmail = import.meta.env.VITE_ADMIN_EMAIL?.trim().toLowerCase();
+      if (!adminEmail) throw new Error('Admin email is not configured.');
+      if (email.trim().toLowerCase() !== adminEmail) throw new Error('Invalid login credentials');
+      const { data, error: loginError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (loginError) throw loginError;
+      if (!isAdmin(data.session)) {
+        await auth.signOut();
+        throw new Error('This account does not have admin access.');
       }
-
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 600));
-
-      const inputHash = await hashPassword(password);
-
-      if (email === adminEmail && inputHash === adminPasswordHash) {
-        localStorage.setItem('admin_auth', 'true');
-        window.location.reload();
-      } else {
-        throw new Error('Invalid login credentials');
-      }
+      navigate(ADMIN_PATH, { replace: true });
     } catch (err: any) {
       setError(err.message || 'An error occurred during authentication');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      await updateRecoveryPassword(password, confirmPassword);
+      setPassword('');
+      setConfirmPassword('');
+      setMode('login');
+      navigate(ADMIN_PATH, { replace: true });
+    } catch (err: any) {
+      setError(err.message || 'Unable to update your password. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const leaveRecovery = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await finishRecovery(Boolean(auth.notice));
+      setPassword('');
+      setConfirmPassword('');
+      setMode('login');
+      navigate(ADMIN_PATH, { replace: true });
+    } catch {
+      setError('Unable to sign out. Please retry Back to Sign In.');
     } finally {
       setLoading(false);
     }
@@ -63,9 +85,9 @@ export const Auth: React.FC = () => {
       }
 
       const siteUrl = (import.meta.env.VITE_SITE_URL || import.meta.env.NEXT_PUBLIC_SITE_URL || window.location.origin).replace(/\/$/, '');
-      const redirectTo = `${siteUrl}/kiran-panel`;
+      const redirectTo = `${siteUrl}${RECOVERY_PATH}`;
 
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo,
       });
 
@@ -93,7 +115,42 @@ export const Auth: React.FC = () => {
         {/* Decorative elements */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00FFAB] to-transparent opacity-50"></div>
 
-        {mode === 'login' ? (
+        {auth.recovery ? (
+          <>
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#00FFAB]/10 text-[#00FFAB] mb-4 border border-[#00FFAB]/20">
+                <KeyRound className="w-8 h-8" />
+              </div>
+              <h2 className="text-2xl font-bold text-white tracking-tight">Reset Password</h2>
+              <p className="text-sm text-gray-500 mt-2">Choose a new password with at least 8 characters</p>
+            </div>
+            {auth.loading ? <p role="status" className="text-center">Verifying reset link...</p> : (
+              <form onSubmit={handleUpdatePassword} className="space-y-5">
+                {(error || auth.recoveryError) && <div role="alert" className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">{error || auth.recoveryError}</div>}
+                {auth.notice && <p role="status" className="text-[#00FFAB] text-center">{auth.notice}</p>}
+                {!auth.notice && !auth.recoveryError && auth.session && (
+                  <>
+                    <label className="block text-sm">New Password
+                      <input type="password" autoComplete="new-password" required minLength={8} value={password} onChange={e => setPassword(e.target.value)} disabled={loading}
+                        className="mt-2 block w-full px-3 py-3 border border-gray-700 rounded-xl bg-black/50 text-white focus:outline-none focus:ring-2 focus:ring-[#00FFAB]/50" />
+                    </label>
+                    <label className="block text-sm">Confirm Password
+                      <input type="password" autoComplete="new-password" required minLength={8} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} disabled={loading}
+                        className="mt-2 block w-full px-3 py-3 border border-gray-700 rounded-xl bg-black/50 text-white focus:outline-none focus:ring-2 focus:ring-[#00FFAB]/50" />
+                    </label>
+                    <button type="submit" disabled={loading} className="w-full py-3 px-4 rounded-xl text-sm font-medium text-black bg-[#00FFAB] hover:bg-[#00FFAB]/90 disabled:opacity-50">
+                      {loading ? 'Updating Password...' : 'Update Password'}
+                    </button>
+                  </>
+                )}
+                {!auth.session && !auth.recoveryError && !auth.notice && <p role="alert">Your session has ended. Request a new reset email.</p>}
+                <button type="button" disabled={loading} onClick={leaveRecovery} className="w-full inline-flex justify-center items-center gap-1.5 text-sm text-gray-400 hover:text-white disabled:opacity-50">
+                  <ArrowLeft className="w-4 h-4" /> Back to Sign In
+                </button>
+              </form>
+            )}
+          </>
+        ) : mode === 'login' ? (
           <>
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#00FFAB]/10 text-[#00FFAB] mb-4 border border-[#00FFAB]/20">
@@ -108,6 +165,7 @@ export const Auth: React.FC = () => {
             </div>
 
             <form onSubmit={handleAuth} className="space-y-5">
+              {auth.notice && <p role="status" className="text-[#00FFAB] text-center">{auth.notice}</p>}
               {error && (
                 <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
                   {error}

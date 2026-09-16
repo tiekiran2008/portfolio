@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Award, ExternalLink, Building2, CalendarDays } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { safeLink } from '../lib/projectData';
 import { SectionWrapper } from './SectionWrapper';
+
+const IssuerLogo: React.FC<{ logo?: string; issuer: string }> = ({ logo, issuer }) => {
+  const [failedUrl, setFailedUrl] = useState<string>();
+  const url = safeLink(logo, true);
+  return url && failedUrl !== url
+    ? <img src={url} alt={`${issuer} logo`} loading="lazy" onError={() => setFailedUrl(url)} className="w-6 h-6 shrink-0 object-contain rounded bg-white/90 p-0.5" />
+    : <Building2 aria-hidden="true" className="w-5 h-5 shrink-0 text-[#00FFAB]" />;
+};
 
 export const Certificates: React.FC = () => {
   const { data: { certificates } } = usePortfolio();
@@ -21,7 +29,7 @@ export const Certificates: React.FC = () => {
           {certificate.image ? <img src={certificate.image} alt={certificate.name} loading="lazy" className="w-full h-48 object-contain bg-black/30" /> : <div className="h-48 flex items-center justify-center bg-[#00FFAB]/5"><Award className="w-16 h-16 text-[#00FFAB]" /></div>}
           <div className="p-6 flex flex-col flex-1 gap-3 break-words">
             <h3 className="text-xl font-bold text-white">{certificate.name}</h3>
-            <p className="flex items-start gap-2 text-gray-300"><Building2 aria-hidden="true" className="w-4 h-4 shrink-0 mt-1 text-[#00FFAB]" /><span className="min-w-0 [overflow-wrap:anywhere]">{certificate.issuer}</span></p>
+            <p className="flex items-center gap-2 text-gray-300"><IssuerLogo logo={certificate.logo} issuer={certificate.issuer} /><span className="min-w-0 [overflow-wrap:anywhere]">{certificate.issuer}</span></p>
             <p className="flex items-center gap-2 text-sm font-mono text-gray-400"><CalendarDays aria-hidden="true" className="w-4 h-4 shrink-0 text-[#00FFFF]" /><span>{certificate.date}</span></p>
             {certificate.description && <p className="text-gray-300 whitespace-pre-wrap [overflow-wrap:anywhere]">{certificate.description}</p>}
             {!!certificate.skills?.length && <div>

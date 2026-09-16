@@ -229,7 +229,7 @@ export const AdminPanel: React.FC = () => {
             {localData.certificates.map(certificate => <div key={certificate.id} className="glass-panel p-6 rounded-xl border border-gray-800 space-y-4">
               <button aria-label={`Delete ${certificate.name}`} onClick={() => setLocalData(prev => ({ ...prev, certificates: prev.certificates.filter(row => row.id !== certificate.id) }))} className="text-red-400">Delete</button>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {(['name', 'issuer', 'date', 'image', 'credentialUrl'] as const).map(field => <label key={field} className="block text-sm min-w-0">{({ name: 'Certificate name', issuer: 'Issuer', date: 'Date', image: 'Image URL', credentialUrl: 'Credential link' })[field]}
+                {(['name', 'issuer', 'logo', 'date', 'image', 'credentialUrl'] as const).map(field => <label key={field} className="block text-sm min-w-0">{({ name: 'Certificate name', issuer: 'Issuer', logo: 'Issuer logo URL', date: 'Date', image: 'Image URL', credentialUrl: 'Credential link' })[field]}
                   <input value={certificate[field] ?? ''} onChange={e => setLocalData(prev => ({ ...prev, certificates: prev.certificates.map(row => row.id === certificate.id ? { ...row, [field]: e.target.value } : row) }))} className="mt-2 w-full bg-black/50 border border-gray-700 rounded p-3" />
                 </label>)}
                 <label className="block text-sm sm:col-span-2">Description

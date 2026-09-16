@@ -1,42 +1,20 @@
-import { navigation } from '../data/portfolio';
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Contrast } from 'lucide-react';
-import { usePortfolio } from '../context/PortfolioContext';
+import { navigation, profile } from '../data/portfolio';
+import React, { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { isHighContrastMode, toggleHighContrastMode } = usePortfolio();
-
-  const links = navigation;
-
+  const [open, setOpen] = useState(false);
   return (
-    <motion.nav 
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 z-[100] bg-[#05070A]/90 backdrop-blur-md border-b border-[#00FFAB]/10"
-    >
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <div className="w-10 hidden lg:block"></div> {/* Spacer for centering */}
-        <ul className="flex items-center gap-5 sm:gap-7 overflow-x-auto no-scrollbar min-w-0 w-full justify-start lg:justify-center">
-          {links.map((link) => (
-            <li key={link.name}>
-              <a 
-                href={link.href}
-                className="text-gray-300 hover:text-[#00FFFF] font-mono text-sm sm:text-base whitespace-nowrap transition-colors"
-              >
-                {link.name}
-              </a>
-            </li>
-          ))}
-        </ul>
-        <button 
-          onClick={toggleHighContrastMode}
-          className={`p-2 ml-4 rounded-full hover:bg-white/10 transition-colors flex-shrink-0 ${isHighContrastMode ? 'text-[#00FFAB]' : 'text-gray-300 hover:text-white'}`}
-          title="Toggle High Contrast Mode"
-        >
-          <Contrast className="w-5 h-5" />
+    <nav aria-label="Main navigation" className="fixed top-0 inset-x-0 z-[100] bg-[#05070A]/95 backdrop-blur-md border-b border-[#00FFAB]/15">
+      <div className="max-w-[1440px] mx-auto px-5 sm:px-8 min-h-16 flex items-center justify-between gap-8">
+        <a href="#home" onClick={() => setOpen(false)} className="shrink-0 font-bold tracking-wide text-[#00FFAB] text-sm sm:text-base">{profile.name}</a>
+        <button type="button" aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open} aria-controls="portfolio-navigation" onClick={() => setOpen(!open)} className="xl:hidden p-2 text-[#00FFFF]">
+          {open ? <X /> : <Menu />}
         </button>
+        <ul id="portfolio-navigation" className={`${open ? 'flex' : 'hidden'} absolute top-16 inset-x-0 bg-[#05070A] border-b border-[#00FFAB]/15 p-5 flex-col gap-5 xl:static xl:flex xl:flex-row xl:items-center xl:justify-center xl:flex-1 xl:bg-transparent xl:border-0 xl:p-0 xl:gap-6`}>
+          {navigation.map(link => <li key={link.href}><a href={link.href} onClick={() => setOpen(false)} className="block text-gray-300 hover:text-[#00FFFF] font-mono text-sm whitespace-nowrap transition-colors duration-200">{link.name}</a></li>)}
+        </ul>
       </div>
-    </motion.nav>
+    </nav>
   );
 };

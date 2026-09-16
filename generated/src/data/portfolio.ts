@@ -94,6 +94,7 @@ export const defaultData: PortfolioData = {
 };
 
 export interface Certificate {
+  logo?: string;
   description?: string;
   skills?: string[];
   id: string;

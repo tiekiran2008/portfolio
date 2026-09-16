@@ -100,9 +100,10 @@ export const Hero: React.FC = () => {
               href={resumeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-3 rounded-md border border-gray-700 text-gray-300 font-mono hover:border-[#00FFAB] hover:text-[#00FFAB] transition-all duration-300"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 1.02 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="px-8 py-3 rounded-md border border-gray-700 text-gray-300 font-mono hover:border-[#00FFAB] hover:text-[#00FFAB] transition-colors duration-200"
             >
               Resume
             </motion.a> : <button disabled title="Resume has not been added yet" className="px-8 py-3 rounded-md border border-gray-700 text-gray-500 font-mono">Resume</button>}

@@ -18,3 +18,22 @@ test('all editable sections persist through create, edit, delete and fresh reads
 test('denied writes throw without changing saved content',async()=>{const {api,defaults}=setup(true);await assert.rejects(api.persistContent(defaults,0),/permission denied/);assert.equal((await api.loadContent()).revision,0)});
 test('stale editor cannot overwrite a newer save',async()=>{const {api,defaults}=setup();await api.persistContent({...defaults,resumeUrl:'https://example.com/new.pdf'},0);await assert.rejects(api.persistContent(defaults,0),/Nothing was saved/);assert.equal((await api.loadContent()).content.resumeUrl,'https://example.com/new.pdf')});
 test('public content excludes private messages; invalid URLs are rejected',async()=>{const {api,defaults}=setup();await api.persistContent({...defaults,messages:[{message:'private'}]},0);assert.equal('messages' in (await api.loadContent()).content,false);await assert.rejects(api.persistContent({...defaults,resumeUrl:'javascript:alert(1)'},1),/links/)});
+
+test('certificate descriptions and skills survive saves, edits, clearing and legacy reads', async()=>{
+ const {api,defaults}=setup();
+ const legacy={id:'cert',name:'Course',issuer:'Issuer',date:'2026'};
+ await api.persistContent({...defaults,certificates:[legacy]},0);
+ let snapshot=await api.loadContent();
+ assert.equal(snapshot.content.certificates[0].description,'');
+ assert.equal(snapshot.content.certificates[0].skills.length,0);
+ Object.assign(snapshot.content.certificates[0],{description:'Built an app.\nLearned testing.',skills:[' React ','TypeScript','']});
+ await api.persistContent(snapshot.content,1);
+ snapshot=await api.loadContent();
+ assert.equal(snapshot.content.certificates[0].description,'Built an app.\nLearned testing.');
+ assert.equal(JSON.stringify(snapshot.content.certificates[0].skills),JSON.stringify(['React','TypeScript']));
+ Object.assign(snapshot.content.certificates[0],{description:'',skills:[]});
+ await api.persistContent(snapshot.content,2);
+ snapshot=await api.loadContent();
+ assert.equal(snapshot.content.certificates[0].description,'');
+ assert.equal(snapshot.content.certificates[0].skills.length,0);
+});

@@ -23,6 +23,13 @@ export const Certificates: React.FC = () => {
             <h3 className="text-xl font-bold text-white">{certificate.name}</h3>
             <p className="text-gray-300">{certificate.issuer}</p>
             <p className="text-sm font-mono text-gray-500">{certificate.date}</p>
+            {certificate.description && <p className="text-gray-300 whitespace-pre-wrap [overflow-wrap:anywhere]">{certificate.description}</p>}
+            {!!certificate.skills?.length && <div>
+              <h4 className="text-sm text-gray-400 mb-2">Skills / Technologies learned</h4>
+              <ul className="flex flex-wrap gap-2">
+                {certificate.skills.map((skill, skillIndex) => <li key={skillIndex} className="max-w-full rounded-md border border-[#00FFAB]/20 bg-[#00FFAB]/5 px-3 py-1 text-sm text-[#00FFAB] [overflow-wrap:anywhere]">{skill}</li>)}
+              </ul>
+            </div>}
             {href && <a href={href} target="_blank" rel="noopener noreferrer" className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[#00FFAB]/40 text-[#00FFAB] hover:bg-[#00FFAB]/10"><ExternalLink className="w-4 h-4 shrink-0" />View Certificate</a>}
           </div>
         </motion.article>;

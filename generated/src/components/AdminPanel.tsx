@@ -226,7 +226,7 @@ export const AdminPanel: React.FC = () => {
           </div>}
           {activeTab === 'certificates' && <>
             <div className="flex justify-between gap-4"><h2 className="text-xl font-bold">Certificates</h2>
-              <button onClick={() => setLocalData(prev => ({ ...prev, certificates: [...prev.certificates, { id: crypto.randomUUID(), name: 'New Certificate', issuer: '', date: '', image: '', credentialUrl: '' }] }))} className="text-[#00FFAB]">+ Add Certificate</button>
+              <button onClick={() => setLocalData(prev => ({ ...prev, certificates: [...prev.certificates, { id: crypto.randomUUID(), name: 'New Certificate', description: '', skills: [], issuer: '', date: '', image: '', credentialUrl: '' }] }))} className="text-[#00FFAB]">+ Add Certificate</button>
             </div>
             {localData.certificates.map(certificate => <div key={certificate.id} className="glass-panel p-6 rounded-xl border border-gray-800 space-y-4">
               <button aria-label={`Delete ${certificate.name}`} onClick={() => setLocalData(prev => ({ ...prev, certificates: prev.certificates.filter(row => row.id !== certificate.id) }))} className="text-red-400">Delete</button>
@@ -234,6 +234,12 @@ export const AdminPanel: React.FC = () => {
                 {(['name', 'issuer', 'date', 'image', 'credentialUrl'] as const).map(field => <label key={field} className="block text-sm min-w-0">{({ name: 'Certificate name', issuer: 'Issuer', date: 'Date', image: 'Image URL', credentialUrl: 'Credential link' })[field]}
                   <input value={certificate[field] ?? ''} onChange={e => setLocalData(prev => ({ ...prev, certificates: prev.certificates.map(row => row.id === certificate.id ? { ...row, [field]: e.target.value } : row) }))} className="mt-2 w-full bg-black/50 border border-gray-700 rounded p-3" />
                 </label>)}
+                <label className="block text-sm sm:col-span-2">Description
+                  <textarea rows={4} value={certificate.description ?? ''} onChange={e => setLocalData(prev => ({ ...prev, certificates: prev.certificates.map(row => row.id === certificate.id ? { ...row, description: e.target.value } : row) }))} className="mt-2 w-full bg-black/50 border border-gray-700 rounded p-3 resize-y" />
+                </label>
+                <label className="block text-sm sm:col-span-2">Skills / Technologies learned (one per line)
+                  <textarea rows={3} value={(certificate.skills ?? []).join('\n')} onChange={e => setLocalData(prev => ({ ...prev, certificates: prev.certificates.map(row => row.id === certificate.id ? { ...row, skills: e.target.value.split('\n') } : row) }))} placeholder={'React\nTypeScript'} className="mt-2 w-full bg-black/50 border border-gray-700 rounded p-3 resize-y" />
+                </label>
                 <label className="block text-sm">Upload thumbnail (maximum 5 MB)
                   <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => { void handleAsset(e.target.files?.[0], certificate.id); e.target.value = ''; }} className="block mt-2 max-w-full" />
                 </label>

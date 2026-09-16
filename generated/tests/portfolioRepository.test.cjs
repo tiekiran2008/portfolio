@@ -26,10 +26,11 @@ test('certificate descriptions and skills survive saves, edits, clearing and leg
  let snapshot=await api.loadContent();
  assert.equal(snapshot.content.certificates[0].description,'');
  assert.equal(snapshot.content.certificates[0].skills.length,0);
- Object.assign(snapshot.content.certificates[0],{description:'Built an app.\nLearned testing.',skills:[' React ','TypeScript','']});
+ Object.assign(snapshot.content.certificates[0],{logo:'https://example.com/issuer.png',description:'Built an app.\nLearned testing.',skills:[' React ','TypeScript','']});
  await api.persistContent(snapshot.content,1);
  snapshot=await api.loadContent();
  assert.equal(snapshot.content.certificates[0].description,'Built an app.\nLearned testing.');
+ assert.equal(snapshot.content.certificates[0].logo,'https://example.com/issuer.png');
  assert.equal(JSON.stringify(snapshot.content.certificates[0].skills),JSON.stringify(['React','TypeScript']));
  Object.assign(snapshot.content.certificates[0],{description:'',skills:[]});
  await api.persistContent(snapshot.content,2);

@@ -96,75 +96,6 @@ body {
   border-style: dashed;
 }
 
-/* High Contrast Mode */
-.high-contrast-mode {
-  --color-bg-dark: #000000;
-  --color-neon-green: #00FFAB;
-  --color-neon-cyan: #00FFFF;
-  --color-glass: rgba(0, 0, 0, 0.95);
-  --color-glass-border: rgba(255, 255, 255, 0.3);
-}
-
-.high-contrast-mode * {
-  text-shadow: none !important;
-  box-shadow: none !important;
-}
-
-.high-contrast-mode .glass-panel {
-  background: #111111 !important;
-  border: 1px solid #444444 !important;
-}
-
-.high-contrast-mode .glass-panel:hover {
-  border-color: #ffffff !important;
-}
-
-.high-contrast-mode .text-gray-400 {
-  color: #cccccc !important;
-}
-
-.high-contrast-mode .text-gray-500 {
-  color: #bbbbbb !important;
-}
-
-.high-contrast-mode .text-gray-600 {
-  color: #aaaaaa !important;
-}
-
-.high-contrast-mode .bg-\[\#00FFAB\]\/10,
-.high-contrast-mode .bg-\[\#00FFFF\]\/10 {
-  background-color: transparent !important;
-  border: 1px solid #ffffff !important;
-  color: #ffffff !important;
-}
-
-.high-contrast-mode .border-\[\#00FFAB\]\/30,
-.high-contrast-mode .border-\[\#00FFFF\]\/30 {
-  border-color: #666666 !important;
-}
-
-.high-contrast-mode .text-\[\#00FFAB\],
-.high-contrast-mode .text-\[\#00FFFF\] {
-  color: #ffffff !important;
-}
-
-.high-contrast-mode .from-\[\#00FFAB\],
-.high-contrast-mode .to-\[\#00FFFF\] {
-  background: none !important;
-  -webkit-text-fill-color: #ffffff !important;
-  color: #ffffff !important;
-}
-
-.high-contrast-mode .bg-\[\#00FFAB\],
-.high-contrast-mode .bg-\[\#00FFFF\] {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-}
-
-.high-contrast-mode .hover\:bg-\[\#00FFFF\]:hover {
-  background-color: #dddddd !important;
-}
-
 /* Interactive Text Hover Effect */
 h1, h2, h3, h4, h5, h6, p {
   transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1);
@@ -269,3 +200,5 @@ h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover, p:hover {
   h1, h2, h3, h4, h5, h6, p { transition: none; }
   .skill-category-card:hover, .skill-chip:hover { transform: none; }
 }
+
+#experience h2:hover, #experience h3:hover, #experience h4:hover, #experience p:hover { transform: none; }

@@ -19,7 +19,6 @@ import { Projects } from './components/Projects';
 import { Experience } from './components/Experience';
 import { Contact } from './components/Contact';
 import { TerminalToggle } from './components/TerminalToggle';
-import { ThemeToggle } from './components/ThemeToggle';
 import { AdminPanel } from './components/AdminPanel';
 import { ScrollToTop } from './components/ScrollToTop';
 import { Auth } from './components/Auth';
@@ -65,7 +64,6 @@ const MainPortfolio = () => {
       <CustomCursor />
       <Background />
       <TerminalToggle />
-      <ThemeToggle />
       <Navbar />
       <ScrollToTop />
 

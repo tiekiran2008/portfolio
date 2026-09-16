@@ -8,7 +8,7 @@ export const Experience: React.FC = () => {
   const { data } = usePortfolio();
 
   return (
-    <SectionWrapper id="experience" hoverDirection="right">
+    <SectionWrapper id="experience" stable>
       <h2 className="text-4xl sm:text-5xl font-bold mb-16 text-transparent bg-clip-text bg-gradient-to-r from-[#00FFAB] to-[#00FFFF] inline-block text-center w-full">
         &gt; Experience
       </h2>
@@ -17,10 +17,10 @@ export const Experience: React.FC = () => {
         {data.experience.map((exp, index) => (
           <motion.div
             key={exp.id}
-            initial={{ opacity: 0, x: -150, rotateY: -45 }}
-            whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, delay: index * 0.2, ease: "easeOut" }}
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 0.35, delay: Math.min(index * 0.05, 0.15), ease: "easeOut" }}
             className="mb-16 pl-10 relative group"
             style={{ transformStyle: 'preserve-3d', perspective: '1000px' }}
           >
@@ -30,9 +30,9 @@ export const Experience: React.FC = () => {
             <motion.div 
               whileHover="hover"
               variants={{
-                hover: { scale: 0.95, rotateX: 5, rotateY: 10, zIndex: 10 }
+                hover: { y: -2 }
               }}
-              className="glass-panel p-8 rounded-2xl border border-gray-800 hover:border-[#00FFAB]/60 transition-all duration-300 group-hover:shadow-[0_0_30px_rgba(0,255,171,0.3)]"
+              className="glass-panel p-8 rounded-2xl border border-gray-800 hover:border-[#00FFAB]/60 transition-colors duration-300 group-hover:shadow-[0_0_30px_rgba(0,255,171,0.3)]"
               style={{ transformStyle: 'preserve-3d', perspective: '1000px' }}
             >
               <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-6">
@@ -40,13 +40,13 @@ export const Experience: React.FC = () => {
                   <motion.div 
                     variants={{
                       hover: { 
-                        rotate: [0, -10, 10, -10, 10, 0],
+                        rotate: 0,
                         transition: { duration: 0.5, ease: "easeInOut" }
                       }
                     }}
                     className="w-16 h-16 rounded-xl bg-white p-2 flex items-center justify-center shrink-0"
                   >
-                    {exp.logo.startsWith('data:application/pdf') ? (
+                    {(/^(data:application\/pdf)/.test(exp.logo) || /\.pdf(?:[?#]|$)/i.test(exp.logo)) ? (
                       <a href={exp.logo} download={`${exp.company}-document.pdf`} className="flex flex-col items-center justify-center w-full h-full text-blue-600 hover:text-blue-800" title="Download PDF Document">
                         <FileText className="w-8 h-8" />
                       </a>

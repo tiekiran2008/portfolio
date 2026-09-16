@@ -12,7 +12,7 @@ export function normalizeContent(raw: Partial<EditableContent>): EditableContent
     projects: normalizeProjects(raw.projects ?? defaultData.projects),
     skills: (raw.skills ?? defaultData.skills).map(row => ({ id: String(row.id), name: text(row.name), category: text(row.category) })),
     experience: (raw.experience ?? defaultData.experience).map(row => ({ id: String(row.id), role: text(row.role), company: text(row.company), period: text(row.period), description: text(row.description), logo: text(row.logo) })),
-    certificates: (raw.certificates ?? []).map(row => ({ id: String(row.id), name: text(row.name), issuer: text(row.issuer), date: text(row.date), description: text(row.description), skills: stringList(row.skills), image: text(row.image), credentialUrl: text(row.credentialUrl) })),
+    certificates: (raw.certificates ?? []).map(row => ({ id: String(row.id), name: text(row.name), issuer: text(row.issuer), logo: text(row.logo), date: text(row.date), description: text(row.description), skills: stringList(row.skills), image: text(row.image), credentialUrl: text(row.credentialUrl) })),
     resumeUrl: safeLink(raw.resumeUrl, true) ?? '',
   };
 }

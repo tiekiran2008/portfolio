@@ -16,8 +16,6 @@ interface PortfolioContextType {
   updateData: (next: Partial<PortfolioData> | ((prev: PortfolioData) => Partial<PortfolioData>)) => void;
   isTerminalMode: boolean;
   toggleTerminalMode: () => void;
-  isHighContrastMode: boolean;
-  toggleHighContrastMode: () => void;
 }
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
 export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -27,7 +25,6 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isTerminalMode, setIsTerminalMode] = useState(false);
-  const [isHighContrastMode, setIsHighContrastMode] = useState(false);
   const generation = useRef(0);
   const applySnapshot = useCallback((snapshot: Awaited<ReturnType<typeof loadContent>>) => {
     setData(prev => ({ ...prev, ...snapshot.content }));
@@ -79,13 +76,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   });
   useEffect(() => {
     setIsTerminalMode(localStorage.getItem('terminalMode') === 'true');
-    setIsHighContrastMode(localStorage.getItem('highContrastMode') === 'true');
   }, []);
   useEffect(() => { document.body.classList.toggle('terminal-mode', isTerminalMode); }, [isTerminalMode]);
-  useEffect(() => { document.body.classList.toggle('high-contrast-mode', isHighContrastMode); }, [isHighContrastMode]);
   const toggleTerminalMode = () => setIsTerminalMode(prev => { localStorage.setItem('terminalMode', String(!prev)); return !prev; });
-  const toggleHighContrastMode = () => setIsHighContrastMode(prev => { localStorage.setItem('highContrastMode', String(!prev)); return !prev; });
-  return <PortfolioContext.Provider value={{ data, loading, loadError, revision, reloadData, saveData, updateData, isTerminalMode, toggleTerminalMode, isHighContrastMode, toggleHighContrastMode }}>{children}</PortfolioContext.Provider>;
+  return <PortfolioContext.Provider value={{ data, loading, loadError, revision, reloadData, saveData, updateData, isTerminalMode, toggleTerminalMode }}>{children}</PortfolioContext.Provider>;
 };
 export const usePortfolio = () => {
   const context = useContext(PortfolioContext);

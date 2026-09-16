@@ -1,59 +1,83 @@
-# Editing portfolio content
+# Portfolio admin and persistence
 
-Edit `src/data/portfolio.ts`:
-- `profile`: biography, career goals, focus areas, hero text, contact email, social URLs and resume URL.
-- `defaultData`: projects, skills and experience used when no saved content exists.
-- `certificates`: certificate cards, including name, issuer, display date, image and credentialUrl.
-- `navigation`: section order in the navigation bar. Page order is in App.tsx.
+## One-time rollout
 
-Existing admin edits remain supported. Saved browser content (`portfolioData_v4`) and
-successful Supabase reads override defaultData. Updating defaults does not erase
-existing projects. Edit those existing entries through your admin panel or existing
-Supabase records. Certificates and profile are frontend config, not new database tables.
+1. In the portfolio Supabase project's SQL Editor, run
+   `supabase/20260916_portfolio_persistence.sql` in full. It requires the existing
+   confirmed Auth user `kiran08461kumar@gmail.com`. If that email is not your owner,
+   verify the intended user before changing the bootstrap email in SQL.
+2. Deploy this commit on Vercel. Keep `VITE_SUPABASE_URL`,
+   `VITE_SUPABASE_ANON_KEY` and `VITE_ADMIN_EMAIL` set for Production.
+3. Sign in at `/kiran-panel`. Wait for saved content to load, edit, then Save Changes.
 
-Certificate example (replace every example value with your actual credential):
+The migration is repeatable and copies existing projects, skills and experience
+only on the first run. It does not delete or change the old tables or their policies.
+Run it BEFORE deploying this code; until the migration exists, the editor blocks
+saves and displays the database error.
 
-```ts
-{
-  id: 'my-certificate',
-  name: 'Your certificate title',
-  issuer: 'Your issuer',
-  date: 'September 2026',
-  image: '/certificates/my-certificate.png',
-  credentialUrl: '/certificates/my-certificate.pdf',
-}
-```
+## Where content lives
 
-Place certificate files in `generated/public/certificates/`, or use complete HTTPS
-URLs. No real certificate records or files were supplied, so the list starts empty.
-The section provides a neutral empty state. Missing links do not create fake buttons.
+- `public.portfolio_content`: one public portfolio record (`id = 1`) with a JSONB
+  document holding projects, skills, experience, certificates and resumeUrl.
+  One atomic update saves additions/edits/deletions across all sections, including
+  deleting the last item. Revision matching prevents stale-editor overwrites.
+- `public.portfolio_admins`: trusted Auth user IDs allowed to update that record.
+  Browser users cannot add themselves. The frontend email check is not the write
+  authorization boundary: database RLS checks the authenticated user's ID.
+- Storage bucket `portfolio-assets`: public resume PDFs and certificate thumbnails.
+  New uploads use unique names, maximum 5 MB, and owner-only insert permission.
+- Existing `messages`: unchanged contact storage, separate from public content.
 
-Projects all use this structure:
-`id, title, description, techStack: string[], features?: string[], githubLink, demoLink, image?`.
-The description is the full project text (line breaks are preserved in the dialog).
-Features are optional frontend content; this change does not add a Supabase column.
-Admin saves omit features from the database payload to preserve the existing schema.
-For production projects loaded from Supabase, add features only if your existing
-schema already supports them; otherwise use the description for feature details.
+After rollout, the old projects/skills/experience tables are legacy copies; the app
+reads and writes portfolio_content. Do not edit those old tables to update the site.
+The small public document avoids assumptions about legacy ID types or column naming
+and lets a Save Changes operation succeed or fail as a whole.
 
-Old or imported project data is normalized: string/JSON/array tech stacks and snake_case
-aliases are accepted, missing lists become empty arrays, and invalid or placeholder
-links are hidden. Every card opens the same detail dialog; no project ID receives
-special behavior. The dialog is mounted at document.body above navigation and supports
-Escape, focus trapping, focus restoration and mobile scrolling.
+## Admin workflow
 
-LinkedIn is centralized as:
-https://www.linkedin.com/in/kiran-kumar-e-24a27b372/
+Skills & Tools is first, followed by Projects, Certificates, Resume, Experience,
+and Messages. Add/edit/delete items, then click Save Changes. Changes publish only
+after Supabase confirms the write. The context then reloads content from Supabase.
+Other open tabs refresh on focus/visibility and every 30 seconds while visible.
 
-GitHub's default project URL now opens the repository rather than a single commit.
-A resume button appears after profile.resumeUrl is populated; the repository had no
-resume.pdf, so an unconfigured link no longer leads to a missing file.
+Failures retain the draft and show the actual error. Polling never replaces a dirty
+admin draft. If another editor has saved first, use Reload saved content and reapply
+your edits. If you had old browser-only edits, use Import previous browser-only
+edits, review the draft, and Save Changes. The migration cannot access browser storage.
 
-Validation:
-- npm run lint
-- npm run build
-- node --test tests/adminAuth.test.cjs tests/projectData.test.cjs
+Certificate fields: name, issuer, date, image URL/upload, credential link.
+Resume: PDF upload or URL; upload first, then Save Changes to publish the URL.
+The homepage order is View Projects → Resume → Contact Me. An unconfigured Resume
+button is disabled, not a fake link. Uploaded assets are public; upload only files
+intended for the public portfolio. Removing a link does not delete the Storage file,
+so existing external links are not broken. Unused files can be removed in Storage.
 
-A Vercel deployment is needed after frontend or public-file changes.
-External URL syntax is checked in code; this is not proof that third-party sites
-remain reachable or that private credentials can be viewed without signing in.
+Project details continue to use the reusable dialog. Features now persist alongside
+the project and have an admin editor. Skills and Projects components already read
+PortfolioContext and therefore need no separate reload wiring.
+
+`src/data/portfolio.ts` still holds static profile/social/about copy and initial
+fallback content. Database arrays, including empty ones, take precedence. Published
+editable data is not saved to localStorage. The old portfolioData_v4 value is retained
+only for the explicit import button, never silently loaded over the database.
+
+## Why the old flow failed
+
+Admin called updateData before attempting database writes and unconditionally showed
+success. Supabase returns errors in result.error; those errors were ignored. Removed
+projects/skills were never deleted in Supabase. Empty arrays were skipped on save and
+empty database results could revive fallback content. Certificates and resume were
+static config, not part of the editor's database payload.
+
+## Validation
+
+From `generated/`: `npm run lint`, `npm run build`, `node --test tests/*.test.cjs`.
+Tests include persistence error/conflict handling, empty-array deletions, and a local
+PostgreSQL migration/RLS test using PGlite with Supabase auth/storage test schemas.
+They do not prove live project schema compatibility or deployment health.
+
+After migration and deployment: add one skill, one project, one certificate and a
+resume; save; visit the portfolio; hard refresh; open an incognito window; check all
+four sections. Edit then delete the test records and save again. Verify removed items
+stay removed. Test the new project's popup and the resume button. Confirm anonymous
+and non-owner writes fail, then regression-check admin login/password recovery.

@@ -4,17 +4,28 @@ import { usePortfolio, Project, Skill, Experience } from '../context/PortfolioCo
 import { Plus, Trash2, Save, X, LogOut, Upload, Image as ImageIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { normalizeContent, uploadAsset } from '../lib/portfolioRepository';
+import type { PortfolioData } from '../data/portfolio';
 import { signOut } from '../lib/adminAuth';
 
 export const AdminPanel: React.FC = () => {
-  const { data, updateData } = usePortfolio();
+  const { data, updateData, saveData, reloadData, loading, loadError, revision } = usePortfolio();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'projects' | 'skills' | 'experience' | 'messages'>('projects');
-  const [localData, setLocalData] = useState(data);
+  const [activeTab, setActiveTab] = useState<'projects' | 'skills' | 'certificates' | 'resume' | 'experience' | 'messages'>('skills');
+  const [localData, setDraft] = useState(data);
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [status, setStatus] = useState('');
+  const [saveError, setSaveError] = useState('');
+  const [baseRevision, setBaseRevision] = useState<number | null>(revision);
+  const setLocalData: React.Dispatch<React.SetStateAction<PortfolioData>> = next => {
+    setDirty(true); setStatus(''); setDraft(next);
+  };
 
   useEffect(() => {
-    setLocalData(data);
-  }, [data]);
+    if (!dirty && !saving && !uploading) { setDraft(data); setBaseRevision(revision); }
+  }, [data, revision, dirty, saving, uploading]);
 
   const handleSignOut = async () => {
     try {
@@ -26,43 +37,55 @@ export const AdminPanel: React.FC = () => {
   };
 
   const handleSave = async () => {
+    if (baseRevision === null || saving || uploading) return;
+    setSaving(true); setSaveError(''); setStatus('');
     try {
-      updateData(localData);
-      
-      // Sync with Supabase if configured
-      if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        // Projects
-        if (localData.projects.length > 0) {
-          // Features are frontend-only until an existing database column is available.
-          await supabase.from('projects').upsert(localData.projects.map(({ features, ...project }) => project));
-        }
-        
-        // Skills
-        if (localData.skills.length > 0) {
-          await supabase.from('skills').upsert(localData.skills);
-        }
-        
-        // Experience
-        if (localData.experience.length > 0) {
-          await supabase.from('experience').upsert(localData.experience);
-        }
-      }
-      
-      alert('Data saved successfully!');
-    } catch (err) {
-      console.error("Failed to save to Supabase:", err);
-      alert('Local data saved, but failed to sync with Supabase. Check console for details.');
-    }
+      await saveData(localData, baseRevision);
+      setDirty(false);
+      setStatus('Saved to Supabase. Portfolio updated.');
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Save failed. Your draft has been kept.');
+    } finally { setSaving(false); }
+  };
+
+  const handleReload = async () => {
+    if (dirty && !window.confirm('Discard unsaved edits and reload saved content?')) return;
+    try { await reloadData(); setDirty(false); setSaveError(''); setStatus('Saved content reloaded.'); }
+    catch (error) { setSaveError(error instanceof Error ? error.message : 'Reload failed.'); }
+  };
+
+  const importPreviousEdits = () => {
+    try {
+      const stored = localStorage.getItem('portfolioData_v4');
+      if (!stored) { setSaveError('No previous browser-only edits were found in this browser.'); return; }
+      const legacy = JSON.parse(stored);
+      if (!window.confirm('Load previous browser-only projects, skills and experience into this draft? Review them, then Save Changes to publish.')) return;
+      setLocalData(prev => ({ ...prev, ...normalizeContent({ ...prev, projects: legacy.projects ?? prev.projects, skills: legacy.skills ?? prev.skills, experience: legacy.experience ?? prev.experience }) }));
+      setStatus('Previous edits loaded into your draft. Review them before saving to Supabase.');
+    } catch { setSaveError('Previous browser-only edits could not be read.'); }
+  };
+
+  const handleAsset = async (file: File | undefined, certificateId?: string) => {
+    if (!file) return;
+    setUploading(true); setSaveError('');
+    try {
+      const url = await uploadAsset(file, certificateId ? 'certificate' : 'resume');
+      setLocalData(prev => certificateId
+        ? { ...prev, certificates: prev.certificates.map(row => row.id === certificateId ? { ...row, image: url } : row) }
+        : { ...prev, resumeUrl: url });
+      setStatus('Upload complete. Click Save Changes to publish it.');
+    } catch (error) { setSaveError(error instanceof Error ? error.message : 'Upload failed.'); }
+    finally { setUploading(false); }
   };
 
   const handleAddProject = () => {
     const newProject: Project = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       title: 'New Project',
       description: 'Project description',
       techStack: ['React'],
-      demoLink: '#',
-      githubLink: '#'
+      demoLink: '',
+      githubLink: ''
     };
     setLocalData({ ...localData, projects: [...localData.projects, newProject] });
   };
@@ -76,7 +99,7 @@ export const AdminPanel: React.FC = () => {
       ...localData,
       projects: localData.projects.map(p => {
         if (p.id === id) {
-          if (field === 'techStack') {
+          if (field === 'techStack' || field === 'features') {
             return { ...p, [field]: value.split(',').map(s => s.trim()) };
           }
           return { ...p, [field]: value };
@@ -88,7 +111,7 @@ export const AdminPanel: React.FC = () => {
 
   // Similar functions for skills and experience...
   const handleAddSkill = () => {
-    const newSkill: Skill = { id: Date.now().toString(), name: 'New Skill', category: 'Category' };
+    const newSkill: Skill = { id: crypto.randomUUID(), name: 'New Skill', category: 'Category' };
     setLocalData({ ...localData, skills: [...localData.skills, newSkill] });
   };
 
@@ -105,7 +128,7 @@ export const AdminPanel: React.FC = () => {
 
   const handleAddExperience = () => {
     const newExp: Experience = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       role: 'New Role',
       company: 'Company',
       period: '2024 - Present',
@@ -142,42 +165,39 @@ export const AdminPanel: React.FC = () => {
   };
 
   const handleRemoveMessage = async (id: string) => {
-    const updatedMessages = (localData.messages || []).filter(m => m.id !== id);
-    setLocalData({ ...localData, messages: updatedMessages });
-    
-    // Immediately delete from Supabase if configured
-    if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-      try {
-        await supabase.from('messages').delete().eq('id', id);
-      } catch (err) {
-        console.error("Failed to delete message from Supabase:", err);
-      }
-    }
-    
-    // Update context as well
-    updateData({ messages: updatedMessages });
+    const { error } = await supabase.from('messages').delete().eq('id', id).select('id').single();
+    if (error) { setSaveError(`Message deletion failed: ${error.message}`); return; }
+    const messages = localData.messages.filter(message => message.id !== id);
+    setDraft(prev => ({ ...prev, messages }));
+    updateData({ messages });
   };
 
   return (
     <div className="min-h-screen bg-[#05070A] text-white p-6 sm:p-12 font-sans relative z-10">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-12 border-b border-gray-800 pb-6">
+        <div className="flex flex-wrap gap-4 justify-between items-center mb-8 border-b border-gray-800 pb-6">
           <h1 className="text-3xl font-bold text-[#00FFAB] font-mono">&gt; ADMIN_PANEL</h1>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
             <button onClick={handleSignOut} className="px-4 py-2 rounded-md border border-gray-700 hover:border-red-500 hover:text-red-500 transition-colors flex items-center gap-2">
               <LogOut className="w-4 h-4" /> SIGN_OUT
             </button>
             <button onClick={() => navigate('/')} className="px-4 py-2 rounded-md border border-gray-700 hover:border-white transition-colors flex items-center gap-2">
               <X className="w-4 h-4" /> CLOSE
             </button>
-            <button onClick={handleSave} className="px-4 py-2 rounded-md bg-[#00FFAB] text-black font-bold hover:bg-[#00FFFF] transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(0,255,171,0.3)]">
-              <Save className="w-4 h-4" /> SAVE_CHANGES
+            <button disabled={saving || uploading || loading || baseRevision === null || !!loadError} onClick={handleSave} className="px-4 py-2 rounded-md bg-[#00FFAB] text-black font-bold hover:bg-[#00FFFF] transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(0,255,171,0.3)]">
+              <Save className="w-4 h-4" /> {saving ? 'SAVING...' : 'SAVE_CHANGES'}
             </button>
           </div>
         </div>
 
+        {(saveError || loadError) && <p role="alert" className="mb-4 p-4 border border-red-500/30 rounded-xl text-red-400 break-words">{saveError || loadError}</p>}
+        {status && <p role="status" className="mb-4 text-[#00FFAB]">{status}</p>}
+        {dirty && <p className="text-sm text-gray-400 mb-3">You have unsaved changes.</p>}
+        <button type="button" disabled={saving || uploading} onClick={handleReload} className="mb-6 px-4 py-2 border border-gray-700 rounded">Reload saved content</button>
+<button type="button" disabled={saving || uploading || baseRevision === null} onClick={importPreviousEdits} className="mb-6 ml-3 px-4 py-2 border border-gray-700 rounded">Import previous browser-only edits</button>
+        <fieldset disabled={saving || uploading || baseRevision === null} className="min-w-0">
         <div className="flex gap-4 mb-8 border-b border-gray-800 pb-4 overflow-x-auto">
-          {(['projects', 'skills', 'experience', 'messages'] as const).map(tab => (
+          {(['skills', 'projects', 'certificates', 'resume', 'experience', 'messages'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -187,12 +207,40 @@ export const AdminPanel: React.FC = () => {
                   : 'text-gray-400 hover:text-white border border-transparent'
               }`}
             >
-              {tab} {tab === 'messages' && localData.messages?.length > 0 && `(${localData.messages.length})`}
+              {tab === 'skills' ? 'Skills & Tools' : tab} {tab === 'messages' && localData.messages?.length > 0 && `(${localData.messages.length})`}
             </button>
           ))}
         </div>
 
         <div className="space-y-6">
+          {activeTab === 'resume' && <div className="glass-panel p-6 rounded-xl border border-gray-800 space-y-4">
+            <h2 className="text-xl font-bold">Resume</h2>
+            <label className="block">Resume URL
+              <input type="url" value={localData.resumeUrl} onChange={e => setLocalData(prev => ({ ...prev, resumeUrl: e.target.value }))} placeholder="https://.../resume.pdf" className="mt-2 w-full bg-black/50 border border-gray-700 rounded p-3" />
+            </label>
+            <label className="block text-[#00FFAB]">Upload PDF (maximum 5 MB)
+              <input type="file" accept="application/pdf,.pdf" onChange={e => { void handleAsset(e.target.files?.[0]); e.target.value = ''; }} className="block mt-2 max-w-full text-gray-300" />
+            </label>
+            <p className="text-sm text-gray-400">Click Save Changes after uploading or editing the URL. The PDF will be public on your portfolio.</p>
+            <button onClick={() => setLocalData(prev => ({ ...prev, resumeUrl: '' }))} className="text-red-400">Remove resume link</button>
+          </div>}
+          {activeTab === 'certificates' && <>
+            <div className="flex justify-between gap-4"><h2 className="text-xl font-bold">Certificates</h2>
+              <button onClick={() => setLocalData(prev => ({ ...prev, certificates: [...prev.certificates, { id: crypto.randomUUID(), name: 'New Certificate', issuer: '', date: '', image: '', credentialUrl: '' }] }))} className="text-[#00FFAB]">+ Add Certificate</button>
+            </div>
+            {localData.certificates.map(certificate => <div key={certificate.id} className="glass-panel p-6 rounded-xl border border-gray-800 space-y-4">
+              <button aria-label={`Delete ${certificate.name}`} onClick={() => setLocalData(prev => ({ ...prev, certificates: prev.certificates.filter(row => row.id !== certificate.id) }))} className="text-red-400">Delete</button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {(['name', 'issuer', 'date', 'image', 'credentialUrl'] as const).map(field => <label key={field} className="block text-sm min-w-0">{({ name: 'Certificate name', issuer: 'Issuer', date: 'Date', image: 'Image URL', credentialUrl: 'Credential link' })[field]}
+                  <input value={certificate[field] ?? ''} onChange={e => setLocalData(prev => ({ ...prev, certificates: prev.certificates.map(row => row.id === certificate.id ? { ...row, [field]: e.target.value } : row) }))} className="mt-2 w-full bg-black/50 border border-gray-700 rounded p-3" />
+                </label>)}
+                <label className="block text-sm">Upload thumbnail (maximum 5 MB)
+                  <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => { void handleAsset(e.target.files?.[0], certificate.id); e.target.value = ''; }} className="block mt-2 max-w-full" />
+                </label>
+              </div>
+            </div>)}
+          </>}
+
           {activeTab === 'projects' && (
             <>
               <div className="flex justify-between items-center mb-6">
@@ -265,6 +313,9 @@ export const AdminPanel: React.FC = () => {
                         </div>
                       )}
                     </div>
+                    <label className="md:col-span-2 text-sm">Features (comma separated)
+                      <input value={(project.features ?? []).join(', ')} onChange={e => handleProjectChange(project.id, 'features', e.target.value)} className="mt-2 w-full bg-black/50 border border-gray-700 rounded p-2" />
+                    </label>
                     <textarea
                       value={project.description}
                       onChange={(e) => handleProjectChange(project.id, 'description', e.target.value)}
@@ -425,6 +476,7 @@ export const AdminPanel: React.FC = () => {
             </>
           )}
         </div>
+        </fieldset>
       </div>
     </div>
   );

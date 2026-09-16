@@ -1,142 +1,93 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import { defaultData, type PortfolioData, type Project, type Skill, type Experience, type Message } from '../data/portfolio';
-import { normalizeProjects } from '../lib/projectData';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { supabase, supabaseConfigured } from '../lib/supabase';
+import { defaultData, type PortfolioData } from '../data/portfolio';
+import { useAuth } from './AuthContext';
+import { isAdmin } from '../lib/adminAuth';
+import { loadContent, persistContent, normalizeContent, type EditableContent } from '../lib/portfolioRepository';
 export type { Project, Skill, Experience, Message } from '../data/portfolio';
 
 interface PortfolioContextType {
   data: PortfolioData;
-  updateData: (newData: Partial<PortfolioData> | ((prev: PortfolioData) => Partial<PortfolioData>)) => void;
+  loading: boolean;
+  loadError: string | null;
+  revision: number | null;
+  reloadData: () => Promise<void>;
+  saveData: (draft: EditableContent, expectedRevision: number) => Promise<void>;
+  updateData: (next: Partial<PortfolioData> | ((prev: PortfolioData) => Partial<PortfolioData>)) => void;
   isTerminalMode: boolean;
   toggleTerminalMode: () => void;
   isHighContrastMode: boolean;
   toggleHighContrastMode: () => void;
 }
-
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
-
 export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [data, setData] = useState<PortfolioData>(defaultData);
+  const { session } = useAuth();
+  const [data, setData] = useState<PortfolioData>({ ...defaultData, ...normalizeContent(defaultData) });
+  const [revision, setRevision] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isTerminalMode, setIsTerminalMode] = useState(false);
   const [isHighContrastMode, setIsHighContrastMode] = useState(false);
-
-  useEffect(() => {
-    const savedData = localStorage.getItem('portfolioData_v4');
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        setData({ ...defaultData, ...parsed, projects: normalizeProjects(parsed.projects ?? defaultData.projects), messages: parsed.messages || [] });
-      } catch { console.warn('Saved portfolio content could not be loaded. Using defaults.'); }
-    }
-
-    // Attempt to fetch data from Supabase
-    const fetchSupabaseData = async () => {
-      try {
-        // Only attempt fetch if URL and Key are configured properly
-        if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-          const { data: projectsData, error: projectsError } = await supabase.from('projects').select('*');
-          const { data: skillsData, error: skillsError } = await supabase.from('skills').select('*');
-          const { data: experienceData, error: experienceError } = await supabase.from('experience').select('*');
-          const { data: messagesData, error: messagesError } = await supabase.from('messages').select('*');
-
-          if (!projectsError && !skillsError && !experienceError && projectsData && skillsData && experienceData) {
-            // If tables exist and data is fetched successfully, use it
-            if (projectsData.length > 0 || skillsData.length > 0 || experienceData.length > 0) {
-              setData(prev => ({
-                ...prev,
-                projects: normalizeProjects(projectsData),
-                skills: skillsData as Skill[],
-                experience: experienceData as Experience[],
-                messages: (!messagesError && messagesData) ? (messagesData as Message[]) : prev.messages
-              }));
-            }
-          } else {
-            console.log('Supabase tables might not be set up yet or are empty. Using default/local data.');
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching from Supabase:', err);
-      }
-    };
-
-    fetchSupabaseData();
-
-    const savedMode = localStorage.getItem('terminalMode');
-    if (savedMode === 'true') {
-      setIsTerminalMode(true);
-      document.body.classList.add('terminal-mode');
-    }
-    const savedContrastMode = localStorage.getItem('highContrastMode');
-    if (savedContrastMode === 'true') {
-      setIsHighContrastMode(true);
-      document.body.classList.add('high-contrast-mode');
-    }
-
-    // Listen for cross-tab changes
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'portfolioData_v4' && e.newValue) {
-        try {
-          const parsed = JSON.parse(e.newValue);
-          setData(prev => ({ ...prev, ...parsed, projects: normalizeProjects(parsed.projects ?? prev.projects), messages: parsed.messages || prev.messages || [] }));
-        } catch (err) {
-          console.error("Failed to parse storage data", err);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+  const generation = useRef(0);
+  const applySnapshot = useCallback((snapshot: Awaited<ReturnType<typeof loadContent>>) => {
+    setData(prev => ({ ...prev, ...snapshot.content }));
+    setRevision(snapshot.revision);
   }, []);
-
-  const updateData = (newData: Partial<PortfolioData> | ((prev: PortfolioData) => Partial<PortfolioData>)) => {
-    setData(prev => {
-      const resolvedData = typeof newData === 'function' ? newData(prev) : newData;
-      const updated = { ...prev, ...resolvedData, projects: normalizeProjects(resolvedData.projects ?? prev.projects) };
-      localStorage.setItem('portfolioData_v4', JSON.stringify(updated));
-      return updated;
-    });
-  };
-
-  const toggleTerminalMode = () => {
-    const newMode = !isTerminalMode;
-    setIsTerminalMode(newMode);
-    localStorage.setItem('terminalMode', String(newMode));
-    if (newMode) {
-      document.body.classList.add('terminal-mode');
-    } else {
-      document.body.classList.remove('terminal-mode');
+  const reloadData = useCallback(async () => {
+    const current = ++generation.current;
+    setLoading(true);
+    try {
+      const snapshot = await loadContent();
+      if (current === generation.current) { applySnapshot(snapshot); setLoadError(null); }
+    } catch (error) {
+      if (current === generation.current) setLoadError(error instanceof Error ? error.message : 'Unable to load content.');
+      throw error;
+    } finally { if (current === generation.current) setLoading(false); }
+  }, [applySnapshot]);
+  useEffect(() => {
+    void reloadData().catch(() => {});
+    const refresh = () => { if (document.visibilityState === 'visible') void reloadData().catch(() => {}); };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    // Poll public content as a fallback without requiring a Realtime publication.
+    const timer = window.setInterval(refresh, 30000);
+    return () => { ++generation.current; clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
+  }, [reloadData]);
+  useEffect(() => {
+    let active = true;
+    setData(prev => ({ ...prev, messages: [] }));
+    if (supabaseConfigured && isAdmin(session)) {
+      void supabase.from('messages').select('*').then(({ data: messages, error }) => {
+        if (active && !error) setData(prev => ({ ...prev, messages: messages ?? [] }));
+      });
     }
-  };
-
-  const toggleHighContrastMode = () => {
-    const newMode = !isHighContrastMode;
-    setIsHighContrastMode(newMode);
-    localStorage.setItem('highContrastMode', String(newMode));
-    if (newMode) {
-      document.body.classList.add('high-contrast-mode');
-    } else {
-      document.body.classList.remove('high-contrast-mode');
-    }
-  };
-
-  return (
-    <PortfolioContext.Provider value={{ 
-      data, 
-      updateData, 
-      isTerminalMode, 
-      toggleTerminalMode,
-      isHighContrastMode,
-      toggleHighContrastMode
-    }}>
-      {children}
-    </PortfolioContext.Provider>
-  );
+    return () => { active = false; };
+  }, [session?.user.id]);
+  const saveData = useCallback(async (draft: EditableContent, expectedRevision: number) => {
+    ++generation.current; // Discard reads started before this write.
+    setLoading(false);
+    const snapshot = await persistContent(draft, expectedRevision);
+    applySnapshot(snapshot); // Server-returned content, never an optimistic draft.
+    try { await reloadData(); }
+    catch { throw new Error('Saved in Supabase, but the verification reload failed. Your saved data is retained; use Reload saved content before editing again.'); }
+  }, [applySnapshot, reloadData]);
+  // Used by the existing contact form/messages UI only. Public edits must use saveData.
+  const updateData: PortfolioContextType['updateData'] = next => setData(prev => {
+    const patch = typeof next === 'function' ? next(prev) : next;
+    return { ...prev, messages: patch.messages ?? prev.messages };
+  });
+  useEffect(() => {
+    setIsTerminalMode(localStorage.getItem('terminalMode') === 'true');
+    setIsHighContrastMode(localStorage.getItem('highContrastMode') === 'true');
+  }, []);
+  useEffect(() => { document.body.classList.toggle('terminal-mode', isTerminalMode); }, [isTerminalMode]);
+  useEffect(() => { document.body.classList.toggle('high-contrast-mode', isHighContrastMode); }, [isHighContrastMode]);
+  const toggleTerminalMode = () => setIsTerminalMode(prev => { localStorage.setItem('terminalMode', String(!prev)); return !prev; });
+  const toggleHighContrastMode = () => setIsHighContrastMode(prev => { localStorage.setItem('highContrastMode', String(!prev)); return !prev; });
+  return <PortfolioContext.Provider value={{ data, loading, loadError, revision, reloadData, saveData, updateData, isTerminalMode, toggleTerminalMode, isHighContrastMode, toggleHighContrastMode }}>{children}</PortfolioContext.Provider>;
 };
-
 export const usePortfolio = () => {
   const context = useContext(PortfolioContext);
-  if (context === undefined) {
-    throw new Error('usePortfolio must be used within a PortfolioProvider');
-  }
+  if (!context) throw new Error('usePortfolio must be used within a PortfolioProvider');
   return context;
 };

@@ -1,11 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Award, ExternalLink } from 'lucide-react';
-import { certificates } from '../data/portfolio';
+import { usePortfolio } from '../context/PortfolioContext';
 import { safeLink } from '../lib/projectData';
 import { SectionWrapper } from './SectionWrapper';
 
-export const Certificates: React.FC = () => (
+export const Certificates: React.FC = () => {
+  const { data: { certificates } } = usePortfolio();
+  return (
   <SectionWrapper id="certificates">
     <h2 className="text-4xl sm:text-5xl font-bold mb-16 text-transparent bg-clip-text bg-gradient-to-r from-[#00FFAB] to-[#00FFFF] text-center w-full">&gt; Certificates</h2>
     {certificates.length === 0 ? (
@@ -27,4 +29,5 @@ export const Certificates: React.FC = () => (
       })}
     </div>}
   </SectionWrapper>
-);
+  );
+};

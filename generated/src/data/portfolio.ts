@@ -110,8 +110,8 @@ export const profile = {
   name: 'KIRAN KUMAR E',
   roles: ['AI/ML Engineer', 'AI Agents Builder', 'Automation Expert', 'Intelligent Systems Builder'],
   tagline: 'Architecting the future through intelligent systems, autonomous agents, and scalable machine learning solutions.',
-  biography: "I'm KIRAN KUMAR E, an AI/ML Engineer focused on building intelligent and automated systems. Experienced in developing machine learning models, AI chatbots, and smart applications. Specialized in automation to reduce manual work and improve efficiency. Continuously learning and exploring advanced technologies in AI and automation.",
-  careerGoals: "My goal is to combine AI/ML and automation to build smarter systems and launch innovative products in the future.",
+  biography: "I’m KIRAN KUMAR E, an AI/ML Engineer focused on building intelligent, automated, and practical solutions. I work with Machine Learning, AI Agents, Computer Vision, Generative AI, chatbots, and automation to solve real-world problems. I enjoy building scalable AI applications, exploring emerging technologies, and continuously improving my skills to create impactful products.",
+  careerGoals: "My goal is to combine AI/ML, AI Agents, and automation to build intelligent systems, solve real-world problems, and develop innovative products that create meaningful impact in the future.",
   focusAreas: ['AIML', 'AI AGENTS', 'AUTOMATION', 'WEB DEVELOPMENT'],
   contactIntro: "I'm currently open for new opportunities. Whether you have a question or just want to say hi, I'll try my best to get back to you!",
   email: 'kiran08461kumar@gmail.com',
@@ -123,6 +123,12 @@ export const profile = {
   },
 };
 
-export const navigation = ['Home', 'About', 'Skills', 'Projects', 'Certificates', 'Experience', 'Contact'].map(name => ({
-  name, href: name === 'Home' ? '#home' : `#${name.toLowerCase()}`,
-}));
+export const navigation = [
+  { name: 'Home', href: '#home' },
+  { name: 'About', href: '#about' },
+  { name: 'Skills & Tools', href: '#skills' },
+  { name: 'Projects', href: '#projects' },
+  { name: 'Experience', href: '#experience' },
+  { name: 'Certificates & Licenses', href: '#certificates' },
+  { name: 'Contact', href: '#contact' },
+];

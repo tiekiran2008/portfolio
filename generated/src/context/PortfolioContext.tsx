@@ -48,10 +48,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     void reloadData().catch(() => {});
     const refresh = () => { if (document.visibilityState === 'visible') void reloadData().catch(() => {}); };
     window.addEventListener('focus', refresh);
+    window.addEventListener('online', refresh);
     document.addEventListener('visibilitychange', refresh);
     // Poll public content as a fallback without requiring a Realtime publication.
     const timer = window.setInterval(refresh, 30000);
-    return () => { ++generation.current; clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
+    return () => { ++generation.current; clearInterval(timer); window.removeEventListener('focus', refresh); window.removeEventListener('online', refresh); document.removeEventListener('visibilitychange', refresh); };
   }, [reloadData]);
   useEffect(() => {
     let active = true;

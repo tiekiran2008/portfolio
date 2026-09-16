@@ -2,9 +2,9 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
 const compile=path=>ts.transpileModule(fs.readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-function setup(deny=false){
+function setup(deny=false,loadError=null){
  const defaults={projects:[],skills:[],experience:[],certificates:[],resumeUrl:'',messages:[]};let record={content:defaults,revision:0};
- const supabase={from(){let patch,revision;const q={select(){return q},eq(k,v){if(k==='revision')revision=v;return q},update(v){patch=v;return q},async single(){return {data:structuredClone(record),error:null}},async maybeSingle(){if(deny)return {data:null,error:{message:'permission denied'}};if(revision!==record.revision)return {data:null,error:null};record=structuredClone(patch);return {data:structuredClone(record),error:null}}};return q}};
+ const supabase={from(){let patch,revision;const q={select(){return q},eq(k,v){if(k==='revision')revision=v;return q},update(v){patch=v;return q},async single(){return {data:structuredClone(record),error:loadError}},async maybeSingle(){if(deny)return {data:null,error:{message:'permission denied'}};if(revision!==record.revision)return {data:null,error:null};record=structuredClone(patch);return {data:structuredClone(record),error:null}}};return q}};
  const project={exports:{},URL};vm.runInNewContext(compile('src/lib/projectData.ts'),project);
  const context={exports:{},URL,require:path=>path==='./supabase'?{supabase,supabaseConfigured:true}:path==='./projectData'?project.exports:{defaultData:defaults}};
  vm.runInNewContext(compile('src/lib/portfolioRepository.ts'),context);return {api:context.exports,defaults};
@@ -36,4 +36,9 @@ test('certificate descriptions and skills survive saves, edits, clearing and leg
  snapshot=await api.loadContent();
  assert.equal(snapshot.content.certificates[0].description,'');
  assert.equal(snapshot.content.certificates[0].skills.length,0);
+});
+
+test('network load errors suggest retrying without blaming SQL or discarding edits',async()=>{
+ const {api}=setup(false,{message:'TypeError: Failed to fetch'});
+ await assert.rejects(api.loadContent(),/Unable to reach Supabase.*unsaved edits have been kept/);
 });

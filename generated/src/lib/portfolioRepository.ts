@@ -24,7 +24,10 @@ function configured() {
 export async function loadContent(): Promise<ContentSnapshot> {
   configured();
   const { data, error } = await supabase.from('portfolio_content').select('content, revision').eq('id', 1).single();
-  if (error) throw new Error(`Unable to load portfolio content: ${error.message}. Check the database migration and permissions.`);
+  if (error) {
+    if (/failed to fetch|networkerror|load failed/i.test(error.message)) throw new Error('Unable to reach Supabase. Check your internet connection or DNS, then retry. Your unsaved edits have been kept.');
+    throw new Error(`Unable to load portfolio content: ${error.message}. Check the database migration and permissions.`);
+  }
   return { content: normalizeContent(data.content), revision: data.revision };
 }
 
@@ -59,9 +62,9 @@ export async function persistContent(draft: EditableContent, revision: number): 
   return { content: normalizeContent(data.content), revision: data.revision };
 }
 
-export async function uploadAsset(file: File, kind: 'resume' | 'certificate'): Promise<string> {
+export async function uploadAsset(file: File, kind: 'resume' | 'certificate' | 'project' | 'experience'): Promise<string> {
   configured();
-  const allowed = kind === 'resume' ? ['application/pdf'] : ['image/png', 'image/jpeg', 'image/webp'];
+  const allowed = kind === 'resume' ? ['application/pdf'] : ['image/png', 'image/jpeg', 'image/webp', ...(kind === 'experience' ? ['application/pdf'] : [])];
   if (!allowed.includes(file.type)) throw new Error(kind === 'resume' ? 'Select a PDF file.' : 'Select a PNG, JPEG or WebP image.');
   if (file.size > 5 * 1024 * 1024) throw new Error('Files must be 5 MB or smaller.');
   const extension = file.type === 'application/pdf' ? 'pdf' : file.type.split('/')[1];

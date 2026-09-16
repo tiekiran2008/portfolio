@@ -74,8 +74,8 @@ const MainPortfolio = () => {
         <About />
         <Skills />
         <Projects />
-        <Certificates />
         <Experience />
+        <Certificates />
         <Contact />
       </main>
     </div>

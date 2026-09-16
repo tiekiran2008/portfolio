@@ -148,20 +148,17 @@ export const AdminPanel: React.FC = () => {
     });
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, id: string, type: 'projects' | 'experience', field: string) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, id: string, type: 'projects' | 'experience', field: string) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64String = reader.result as string;
-      if (type === 'projects') {
-        handleProjectChange(id, field as keyof Project, base64String);
-      } else {
-        handleExperienceChange(id, field as keyof Experience, base64String);
-      }
-    };
-    reader.readAsDataURL(file);
+    setUploading(true); setSaveError('');
+    try {
+      const url = await uploadAsset(file, type === 'projects' ? 'project' : 'experience');
+      setLocalData(prev => ({ ...prev, [type]: prev[type].map(row => row.id === id ? { ...row, [field]: url } : row) }));
+      setStatus('Upload complete. Click Save Changes to publish it.');
+    } catch (error) { setSaveError(error instanceof Error ? error.message : 'Upload failed.'); }
+    finally { setUploading(false); }
   };
 
   const handleRemoveMessage = async (id: string) => {
@@ -193,11 +190,12 @@ export const AdminPanel: React.FC = () => {
         {(saveError || loadError) && <p role="alert" className="mb-4 p-4 border border-red-500/30 rounded-xl text-red-400 break-words">{saveError || loadError}</p>}
         {status && <p role="status" className="mb-4 text-[#00FFAB]">{status}</p>}
         {dirty && <p className="text-sm text-gray-400 mb-3">You have unsaved changes.</p>}
+        {loadError && <button type="button" disabled={saving || uploading || loading} onClick={() => { void reloadData().then(() => setSaveError('')).catch(() => {}); }} className="mb-6 mr-3 px-4 py-2 border border-[#00FFAB]/40 text-[#00FFAB] rounded">Retry connection (keep edits)</button>}
         <button type="button" disabled={saving || uploading} onClick={handleReload} className="mb-6 px-4 py-2 border border-gray-700 rounded">Reload saved content</button>
 <button type="button" disabled={saving || uploading || baseRevision === null} onClick={importPreviousEdits} className="mb-6 ml-3 px-4 py-2 border border-gray-700 rounded">Import previous browser-only edits</button>
         <fieldset disabled={saving || uploading || baseRevision === null} className="min-w-0">
         <div className="flex gap-4 mb-8 border-b border-gray-800 pb-4 overflow-x-auto">
-          {(['skills', 'projects', 'certificates', 'resume', 'experience', 'messages'] as const).map(tab => (
+          {(['skills', 'projects', 'experience', 'certificates', 'resume', 'messages'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -207,7 +205,7 @@ export const AdminPanel: React.FC = () => {
                   : 'text-gray-400 hover:text-white border border-transparent'
               }`}
             >
-              {tab === 'skills' ? 'Skills & Tools' : tab} {tab === 'messages' && localData.messages?.length > 0 && `(${localData.messages.length})`}
+              {tab === 'skills' ? 'Skills & Tools' : tab === 'certificates' ? 'Certificates & Licenses' : tab} {tab === 'messages' && localData.messages?.length > 0 && `(${localData.messages.length})`}
             </button>
           ))}
         </div>
@@ -225,7 +223,7 @@ export const AdminPanel: React.FC = () => {
             <button onClick={() => setLocalData(prev => ({ ...prev, resumeUrl: '' }))} className="text-red-400">Remove resume link</button>
           </div>}
           {activeTab === 'certificates' && <>
-            <div className="flex justify-between gap-4"><h2 className="text-xl font-bold">Certificates</h2>
+            <div className="flex justify-between gap-4"><h2 className="text-xl font-bold">Certificates &amp; Licenses</h2>
               <button onClick={() => setLocalData(prev => ({ ...prev, certificates: [...prev.certificates, { id: crypto.randomUUID(), name: 'New Certificate', description: '', skills: [], issuer: '', date: '', image: '', credentialUrl: '' }] }))} className="text-[#00FFAB]">+ Add Certificate</button>
             </div>
             {localData.certificates.map(certificate => <div key={certificate.id} className="glass-panel p-6 rounded-xl border border-gray-800 space-y-4">
@@ -307,7 +305,7 @@ export const AdminPanel: React.FC = () => {
                           <span>Upload Base64</span>
                           <input 
                             type="file" 
-                            accept="image/*" 
+                            accept="image/png,image/jpeg,image/webp"
                             className="hidden" 
                             onChange={(e) => handleImageUpload(e, project.id, 'projects', 'image')}
                           />
@@ -422,7 +420,7 @@ export const AdminPanel: React.FC = () => {
                           <span>Upload Base64</span>
                           <input 
                             type="file" 
-                            accept="image/*,.pdf" 
+                            accept="image/png,image/jpeg,image/webp,application/pdf"
                             className="hidden" 
                             onChange={(e) => handleImageUpload(e, exp.id, 'experience', 'logo')}
                           />

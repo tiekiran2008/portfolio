@@ -56,7 +56,7 @@ const ProjectCard: React.FC<{ project: Project, index: number, onClick: () => vo
 
   return (
     <div 
-      className="relative min-h-[300px] h-full"
+      className="relative group min-w-0 min-h-[300px] h-full isolate"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
@@ -80,10 +80,7 @@ const ProjectCard: React.FC<{ project: Project, index: number, onClick: () => vo
           transformStyle: 'preserve-3d', 
           perspective: '1000px' 
         }}
-        onClick={onClick}
-        role="button" tabIndex={0} aria-label={`View details for ${project.title}`}
-        onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onClick(); } }}
-        className="glass-panel p-8 rounded-2xl cursor-pointer group relative overflow-hidden h-full flex flex-col justify-between border border-gray-800"
+        className="glass-panel pointer-events-none p-8 rounded-2xl cursor-pointer relative overflow-hidden h-full flex flex-col justify-between border border-gray-800"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-[#00FFAB]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0" />
         
@@ -132,6 +129,10 @@ const ProjectCard: React.FC<{ project: Project, index: number, onClick: () => vo
           )}
         </div>
       </motion.div>
+      <button type="button" onClick={onClick} aria-label={`View details for ${project.title}`} aria-haspopup="dialog"
+        className="absolute inset-0 z-20 rounded-2xl cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#00FFAB]">
+        <span className="sr-only">View project details</span>
+      </button>
     </div>
   );
 };
@@ -180,14 +181,14 @@ export const Projects: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-xl"
-            onClick={() => setSelectedProject(null)}
+            onClick={event => { if (event.target === event.currentTarget) setSelectedProject(null); }}
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="glass-panel w-full max-w-4xl max-h-[90dvh] overflow-y-auto overscroll-contain rounded-3xl p-5 sm:p-12 break-words relative border border-[#00FFAB]/30 shadow-[0_0_50px_rgba(0,255,171,0.1)]"
+              className="glass-panel w-full max-w-4xl max-h-[90dvh] overflow-y-auto overscroll-contain rounded-3xl p-5 sm:p-12 [overflow-wrap:anywhere] relative border border-[#00FFAB]/30 shadow-[0_0_50px_rgba(0,255,171,0.1)]"
               ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="project-detail-title"
               onClick={(e) => e.stopPropagation()}
             >
@@ -210,7 +211,7 @@ export const Projects: React.FC = () => {
               
               <div className="flex flex-wrap gap-3 mb-8 relative z-10">
                 {selectedProject.techStack.map((tech, i) => (
-                  <span key={i} className="px-4 py-2 text-sm font-mono rounded-full bg-[#00FFAB]/10 border border-[#00FFAB]/30 text-[#00FFAB]">
+                  <span key={i} className="max-w-full px-4 py-2 text-sm font-mono rounded-full bg-[#00FFAB]/10 border border-[#00FFAB]/30 text-[#00FFAB]">
                     {tech}
                   </span>
                 ))}

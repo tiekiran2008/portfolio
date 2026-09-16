@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { usePortfolio } from '../context/PortfolioContext';
+import { usePortfolio, Skill } from '../context/PortfolioContext';
 import { SectionWrapper } from './SectionWrapper';
-const SkillCard: React.FC<{ category: string, skills: any[], index: number }> = ({ category, skills, index }) => {
+const SkillCard: React.FC<{ category: string, skills: Skill[], index: number }> = ({ category, skills, index }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -42,7 +42,7 @@ const SkillCard: React.FC<{ category: string, skills: any[], index: number }> = 
       whileHover={{ zIndex: 10 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="glass-panel p-8 rounded-xl border border-gray-800 hover:border-[#00FFFF]/50 transition-colors duration-300 group"
+      className="glass-panel h-full min-w-0 p-5 sm:p-6 rounded-xl border border-gray-800 hover:border-[#00FFFF]/50 transition-colors duration-300 group"
       style={{ 
         rotateX, 
         rotateY, 
@@ -51,12 +51,12 @@ const SkillCard: React.FC<{ category: string, skills: any[], index: number }> = 
       }}
     >
       <motion.h3 
-        className="text-xl font-mono text-[#00FFFF] mb-6 border-b border-gray-800 pb-4 group-hover:border-[#00FFFF]/30 transition-colors"
+        className="min-h-16 [overflow-wrap:anywhere] text-xl font-mono text-[#00FFFF] mb-6 border-b border-gray-800 pb-4 group-hover:border-[#00FFFF]/30 transition-colors"
         style={{ translateZ: 50 }}
       >
         {category}
       </motion.h3>
-      <motion.div className="flex flex-wrap gap-3" style={{ translateZ: 75 }}>
+      <motion.div className="grid grid-cols-2 auto-rows-fr gap-3" style={{ translateZ: 75 }}>
         {skills.map((skill, i) => (
           <motion.span
             key={skill.id}
@@ -65,12 +65,12 @@ const SkillCard: React.FC<{ category: string, skills: any[], index: number }> = 
             transition={{ delay: i * 0.05 }}
             whileHover={{ 
               y: -5, 
-              scale: 1.1, 
+              scale: 1.03,
               boxShadow: "0 0 25px rgba(0,255,171,0.8), 0 0 50px rgba(0,255,171,0.4)",
               backgroundColor: "rgba(0,255,171,0.2)",
               color: "#ffffff"
             }}
-            className="px-4 py-2 rounded-full text-sm font-mono bg-[#00FFAB]/5 border border-[#00FFAB]/20 text-gray-300 hover:text-[#00FFAB] hover:border-[#00FFAB] transition-all cursor-default"
+            className="min-w-0 min-h-11 flex items-center justify-center text-center [overflow-wrap:anywhere] px-3 py-2 rounded-xl text-sm font-mono bg-[#00FFAB]/5 border border-[#00FFAB]/20 text-gray-300 hover:text-[#00FFAB] hover:border-[#00FFAB] transition-all cursor-default"
           >
             {skill.name}
           </motion.span>
@@ -91,7 +91,7 @@ export const Skills: React.FC = () => {
         &gt; Skills & Tools
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 auto-rows-fr gap-6 w-full">
         {categories.map((category, index) => (
           <SkillCard 
             key={category} 

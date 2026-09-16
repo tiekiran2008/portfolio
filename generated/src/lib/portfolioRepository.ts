@@ -1,6 +1,6 @@
 import { supabase, supabaseConfigured } from './supabase';
 import { defaultData, type PortfolioData } from '../data/portfolio';
-import { normalizeProjects, safeLink } from './projectData';
+import { normalizeProjects, safeLink, stringList } from './projectData';
 
 export type EditableContent = Omit<PortfolioData, 'messages'>;
 export type ContentSnapshot = { content: EditableContent; revision: number };
@@ -12,7 +12,7 @@ export function normalizeContent(raw: Partial<EditableContent>): EditableContent
     projects: normalizeProjects(raw.projects ?? defaultData.projects),
     skills: (raw.skills ?? defaultData.skills).map(row => ({ id: String(row.id), name: text(row.name), category: text(row.category) })),
     experience: (raw.experience ?? defaultData.experience).map(row => ({ id: String(row.id), role: text(row.role), company: text(row.company), period: text(row.period), description: text(row.description), logo: text(row.logo) })),
-    certificates: (raw.certificates ?? []).map(row => ({ id: String(row.id), name: text(row.name), issuer: text(row.issuer), date: text(row.date), image: text(row.image), credentialUrl: text(row.credentialUrl) })),
+    certificates: (raw.certificates ?? []).map(row => ({ id: String(row.id), name: text(row.name), issuer: text(row.issuer), date: text(row.date), description: text(row.description), skills: stringList(row.skills), image: text(row.image), credentialUrl: text(row.credentialUrl) })),
     resumeUrl: safeLink(raw.resumeUrl, true) ?? '',
   };
 }

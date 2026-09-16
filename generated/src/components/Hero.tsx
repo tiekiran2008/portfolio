@@ -1,3 +1,5 @@
+import { usePortfolio } from '../context/PortfolioContext';
+import { safeLink } from '../lib/projectData';
 import { profile } from '../data/portfolio';
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
@@ -6,6 +8,8 @@ import { Github, Linkedin, BrainCircuit } from 'lucide-react';
 const roles = profile.roles;
 
 export const Hero: React.FC = () => {
+  const { data } = usePortfolio();
+  const resumeUrl = safeLink(data.resumeUrl, true);
   const [currentRoleIndex, setCurrentRoleIndex] = useState(0);
   const [typedText, setTypedText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -90,8 +94,18 @@ export const Hero: React.FC = () => {
               whileTap={{ scale: 0.95 }}
               className="px-8 py-3 rounded-md bg-[#00FFAB]/10 border border-[#00FFAB] text-[#00FFAB] font-mono hover:bg-[#00FFAB] hover:text-[#05070A] transition-all duration-300 shadow-[0_0_20px_rgba(0,255,171,0.2)] hover:shadow-[0_0_30px_rgba(0,255,171,0.6)]"
             >
-              INITIATE_PROJECTS
+              View Projects
             </motion.a>
+            {resumeUrl ? <motion.a
+              href={resumeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-8 py-3 rounded-md border border-gray-700 text-gray-300 font-mono hover:border-[#00FFAB] hover:text-[#00FFAB] transition-all duration-300"
+            >
+              Resume
+            </motion.a> : <button disabled title="Resume has not been added yet" className="px-8 py-3 rounded-md border border-gray-700 text-gray-500 font-mono">Resume</button>}
             <motion.a
               href="#contact"
               animate={{ y: [0, -8, 0] }}
@@ -100,18 +114,9 @@ export const Hero: React.FC = () => {
               whileTap={{ scale: 0.95 }}
               className="px-8 py-3 rounded-md border border-gray-700 text-gray-300 font-mono hover:border-[#00FFFF] hover:text-[#00FFFF] hover:bg-[#00FFFF]/10 hover:shadow-[0_0_20px_rgba(0,255,255,0.4)] transition-all duration-300"
             >
-              CONTACT ME
+              Contact Me
             </motion.a>
-            {profile.resumeUrl && <motion.a
-              href={profile.resumeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-3 rounded-md border border-gray-700 text-gray-300 font-mono hover:border-[#00FFAB] hover:text-[#00FFAB] transition-all duration-300"
-            >
-              RESUME
-            </motion.a>}
+
           </div>
         </motion.div>
 

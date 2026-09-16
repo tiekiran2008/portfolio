@@ -37,6 +37,8 @@ export interface PortfolioData {
   skills: Skill[];
   experience: Experience[];
   messages: Message[];
+  certificates: Certificate[];
+  resumeUrl: string;
 }
 
 export const defaultData: PortfolioData = {
@@ -86,6 +88,8 @@ export const defaultData: PortfolioData = {
       logo: 'https://storage.googleapis.com/aistudio-user-uploads-us-central1/014c5770-0d32-411a-85b2-c07a3915f013/image_2025-03-02_151121852.png'
     }
   ],
+  certificates: [],
+  resumeUrl: '',
   messages: []
 };
 
@@ -98,8 +102,7 @@ export interface Certificate {
   credentialUrl?: string;
 }
 
-// Add your actual certificate records here. See CONTENT_EDITING.md for an example.
-export const certificates: Certificate[] = [];
+// Published certificates are managed through Admin and stored in Supabase.
 
 export const profile = {
   name: 'KIRAN KUMAR E',

@@ -100,8 +100,8 @@ export const Hero: React.FC = () => {
               href={resumeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              whileHover={{ scale: 1.03, boxShadow: "0 0 18px rgba(0,255,171,0.25)" }}
-              whileTap={{ scale: 1.02, boxShadow: "0 0 14px rgba(0,255,171,0.2)" }}
+              whileHover={{ scale: 1.03, boxShadow: "0 0 24px rgba(0,255,171,0.35)" }}
+              whileTap={{ scale: 1.02, boxShadow: "0 0 20px rgba(0,255,171,0.28)" }}
               transition={{ duration: 0.2, ease: "easeOut" }}
               className="px-8 py-3 rounded-md border border-gray-700 text-gray-300 font-mono hover:border-[#00FFAB] hover:text-[#00FFAB] transition-colors duration-200"
             >

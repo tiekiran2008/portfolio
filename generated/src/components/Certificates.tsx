@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Award, ExternalLink, Building2, CalendarDays } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { safeLink } from '../lib/projectData';
@@ -9,12 +9,13 @@ const IssuerLogo: React.FC<{ logo?: string; issuer: string }> = ({ logo, issuer 
   const [failedUrl, setFailedUrl] = useState<string>();
   const url = safeLink(logo, true);
   return url && failedUrl !== url
-    ? <img src={url} alt={`${issuer} logo`} loading="lazy" onError={() => setFailedUrl(url)} className="w-6 h-6 shrink-0 object-contain rounded bg-white/90 p-0.5" />
+    ? <img src={url} alt={`${issuer} logo`} loading="lazy" decoding="async" onError={() => setFailedUrl(url)} className="w-6 h-6 shrink-0 object-contain rounded bg-white/90 p-0.5" />
     : <Building2 aria-hidden="true" className="w-5 h-5 shrink-0 text-[#00FFAB]" />;
 };
 
 export const Certificates: React.FC = () => {
   const { data: { certificates } } = usePortfolio();
+  const reducedMotion = useReducedMotion();
   return (
   <SectionWrapper id="certificates">
     <h2 className="text-4xl sm:text-5xl font-bold mb-16 text-transparent bg-clip-text bg-gradient-to-r from-[#00FFAB] to-[#00FFFF] text-center w-full">&gt; Certificates &amp; Licenses</h2>
@@ -25,7 +26,7 @@ export const Certificates: React.FC = () => {
     ) : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
       {certificates.map((certificate, index) => {
         const href = safeLink(certificate.credentialUrl, true);
-        return <motion.article key={certificate.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.05 }} className="glass-panel rounded-2xl border border-gray-800 overflow-hidden min-w-0 flex flex-col">
+        return <motion.article key={certificate.id} initial={reducedMotion ? false : { opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, ease: "easeOut", delay: Math.min(index * 0.05, 0.2) }} className="min-w-0 h-full cyber-card-slot"><div className="glass-panel cyber-pop-card h-full rounded-2xl border border-gray-800 overflow-hidden min-w-0 flex flex-col">
           {certificate.image ? <img src={certificate.image} alt={certificate.name} loading="lazy" className="w-full h-48 object-contain bg-black/30" /> : <div className="h-48 flex items-center justify-center bg-[#00FFAB]/5"><Award className="w-16 h-16 text-[#00FFAB]" /></div>}
           <div className="p-6 flex flex-col flex-1 gap-3 break-words">
             <h3 className="text-xl font-bold text-white">{certificate.name}</h3>
@@ -40,7 +41,7 @@ export const Certificates: React.FC = () => {
             </div>}
             {href && <a href={href} target="_blank" rel="noopener noreferrer" className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[#00FFAB]/40 text-[#00FFAB] hover:bg-[#00FFAB]/10"><ExternalLink className="w-4 h-4 shrink-0" />View Certificate</a>}
           </div>
-        </motion.article>;
+        </div></motion.article>;
       })}
     </div>}
   </SectionWrapper>

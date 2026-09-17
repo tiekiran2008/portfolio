@@ -202,3 +202,35 @@ h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover, p:hover {
 }
 
 #experience h2:hover, #experience h3:hover, #experience h4:hover, #experience p:hover { transform: none; }
+
+/* Entrance wrappers and interactive cards own separate transforms. */
+.cyber-card-slot { position: relative; perspective: 1000px; }
+.cyber-card-slot:hover, .cyber-card-slot:focus-within { z-index: 2; }
+.glass-panel.cyber-pop-card {
+  transition: transform 300ms cubic-bezier(0.2, 0.7, 0.3, 1),
+    box-shadow 300ms ease-out, border-color 300ms ease-out;
+}
+@media (hover: hover) and (pointer: fine) {
+  .glass-panel.cyber-pop-card:hover, .glass-panel.cyber-pop-card:focus-visible {
+    transform: translateY(-7px) translateZ(8px) scale(1.025);
+    border-color: rgba(0, 255, 210, 0.65);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.3), 0 0 24px rgba(0,255,171,0.24), 0 0 10px rgba(0,255,255,0.12);
+  }
+}
+@media (hover: none), (pointer: coarse) {
+  .glass-panel.cyber-pop-card:active {
+    transform: translateY(-3px) scale(1.015);
+    border-color: rgba(0,255,210,0.55);
+    box-shadow: 0 0 20px rgba(0,255,171,0.24);
+  }
+  .skill-chip:active {
+    transform: scale(1.025);
+    box-shadow: 0 0 12px rgba(0,255,171,0.2);
+    border-color: rgba(0,255,171,0.5);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glass-panel.cyber-pop-card { transition: none; }
+  .glass-panel.cyber-pop-card:hover, .glass-panel.cyber-pop-card:active,
+  .glass-panel.cyber-pop-card:focus-visible, .skill-chip:active { transform: none; }
+}

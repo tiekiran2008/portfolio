@@ -11,9 +11,9 @@ const SkillCard: React.FC<{ category: string, skills: Skill[], index: number }> 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.3, delay: Math.min(index * 0.04, 0.16), ease: 'easeOut' }}
-      className="skills-card-slot"
+      className="skills-card-slot cyber-card-slot"
     >
-      <div className="glass-panel skill-category-card rounded-xl">
+      <div className="glass-panel skill-category-card cyber-pop-card rounded-xl">
         <h3 className="text-lg sm:text-xl font-mono text-[#00FFFF]">{category}</h3>
         <ul className="skill-chip-list">
           {skills.map(skill => (

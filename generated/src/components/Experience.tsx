@@ -1,11 +1,12 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { usePortfolio } from '../context/PortfolioContext';
 import { SectionWrapper } from './SectionWrapper';
 import { FileText } from 'lucide-react';
 
 export const Experience: React.FC = () => {
   const { data } = usePortfolio();
+  const reducedMotion = useReducedMotion();
 
   return (
     <SectionWrapper id="experience" stable>
@@ -17,10 +18,10 @@ export const Experience: React.FC = () => {
         {data.experience.map((exp, index) => (
           <motion.div
             key={exp.id}
-            initial={{ opacity: 0, y: 12 }}
+            initial={reducedMotion ? false : { opacity: 0, y: 32 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 0.35, delay: Math.min(index * 0.05, 0.15), ease: "easeOut" }}
+            transition={{ duration: 0.6, delay: Math.min(index * 0.05, 0.15), ease: "easeOut" }}
             className="mb-16 pl-10 relative group"
             style={{ transformStyle: 'preserve-3d', perspective: '1000px' }}
           >

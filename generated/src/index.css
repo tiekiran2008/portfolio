@@ -234,3 +234,15 @@ h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover, p:hover {
   .glass-panel.cyber-pop-card:hover, .glass-panel.cyber-pop-card:active,
   .glass-panel.cyber-pop-card:focus-visible, .skill-chip:active { transform: none; }
 }
+
+/* Spring-driven Skills rotation owns transforms; CSS handles only the glow. */
+.glass-panel.skill-tilt-card {
+  transition: border-color 250ms ease-out, box-shadow 250ms ease-out;
+}
+.glass-panel.skill-tilt-card:hover, .glass-panel.skill-tilt-card:active {
+  border-color: rgba(0,255,210,0.55);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.3), 0 0 22px rgba(0,255,171,0.22);
+}
+@media (prefers-reduced-motion: reduce) {
+  .glass-panel.skill-tilt-card:hover, .glass-panel.skill-tilt-card:active { transform: none; }
+}

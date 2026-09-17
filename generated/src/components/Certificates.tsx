@@ -7,7 +7,9 @@ import { SectionWrapper } from './SectionWrapper';
 
 const IssuerLogo: React.FC<{ logo?: string; issuer: string }> = ({ logo, issuer }) => {
   const [failedUrl, setFailedUrl] = useState<string>();
-  const url = safeLink(logo, true);
+  // Existing admin records include embedded raster logos; never allow SVG/HTML data URLs.
+  const rasterLogo = typeof logo === 'string' && /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=\r\n]+$/.test(logo) ? logo : undefined;
+  const url = rasterLogo ?? safeLink(logo, true);
   return url && failedUrl !== url
     ? <img src={url} alt={`${issuer} logo`} loading="lazy" decoding="async" onError={() => setFailedUrl(url)} className="w-6 h-6 shrink-0 object-contain rounded bg-white/90 p-0.5" />
     : <Building2 aria-hidden="true" className="w-5 h-5 shrink-0 text-[#00FFAB]" />;

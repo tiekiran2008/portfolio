@@ -246,3 +246,17 @@ h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover, p:hover {
 @media (prefers-reduced-motion: reduce) {
   .glass-panel.skill-tilt-card:hover, .glass-panel.skill-tilt-card:active { transform: none; }
 }
+
+/* Stationary chip slots keep wrapping and pointer bounds stable. */
+.skill-chip-slot { display: flex; min-width: 0; max-width: 100%; perspective: 700px; }
+.skill-chip.skill-chip-tilt {
+  pointer-events: none;
+  transition: box-shadow 250ms ease-out, border-color 250ms ease-out,
+    background-color 250ms ease-out, color 250ms ease-out;
+}
+.skill-chip-slot:hover .skill-chip-tilt, .skill-chip-slot:active .skill-chip-tilt {
+  border-color: rgba(0,255,210,0.5);
+  box-shadow: 0 0 12px rgba(0,255,171,0.2);
+  background-color: rgba(0,255,171,0.1);
+  color: var(--color-neon-green);
+}

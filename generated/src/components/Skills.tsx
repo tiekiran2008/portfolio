@@ -3,6 +3,36 @@ import { motion, useReducedMotion, useMotionValue, useSpring } from 'framer-moti
 import { usePortfolio, Skill } from '../context/PortfolioContext';
 import { SectionWrapper } from './SectionWrapper';
 
+const SkillChip: React.FC<{ skill: Skill }> = ({ skill }) => {
+  const reducedMotion = useReducedMotion();
+  const tx = useMotionValue(0), ty = useMotionValue(0);
+  const dx = useMotionValue(0), dy = useMotionValue(0), dz = useMotionValue(0), zoom = useMotionValue(1);
+  const spring = { stiffness: 190, damping: 25, mass: 0.6 };
+  const rotateX = useSpring(tx, spring), rotateY = useSpring(ty, spring);
+  const x = useSpring(dx, spring), y = useSpring(dy, spring), z = useSpring(dz, spring), scale = useSpring(zoom, spring);
+  const reset = () => { tx.set(0); ty.set(0); dx.set(0); dy.set(0); dz.set(0); zoom.set(1); };
+  useEffect(() => { if (reducedMotion) reset(); }, [reducedMotion]);
+  const move = (event: React.PointerEvent<HTMLLIElement>) => {
+    if (reducedMotion || event.pointerType !== 'mouse') return;
+    // Measure the stationary slot, never the moving visual.
+    const rect = event.currentTarget.getBoundingClientRect();
+    const px = Math.max(-0.5, Math.min(0.5, (event.clientX - rect.left) / Math.max(rect.width, 1) - 0.5));
+    const py = Math.max(-0.5, Math.min(0.5, (event.clientY - rect.top) / Math.max(rect.height, 1) - 0.5));
+    tx.set(-py * 12); ty.set(px * 12);
+    dx.set(px * 2); dy.set(py - 1); dz.set(3); zoom.set(1.01);
+  };
+  return (
+    <li className="skill-chip-slot" onPointerMove={move} onPointerLeave={reset} onPointerCancel={reset}
+      onPointerDown={event => { if (!reducedMotion && event.pointerType !== 'mouse') { tx.set(2); ty.set(-2); dz.set(2); dy.set(-1); zoom.set(1.005); } }}
+      onPointerUp={event => { if (event.pointerType !== 'mouse') reset(); }}>
+      <motion.span className="skill-chip skill-chip-tilt text-sm font-mono text-gray-300"
+        style={reducedMotion ? undefined : { rotateX, rotateY, x, y, z, scale, transformStyle: 'preserve-3d' }}>
+        {skill.name}
+      </motion.span>
+    </li>
+  );
+};
+
 const SkillCard: React.FC<{ category: string, skills: Skill[], index: number }> = ({ category, skills, index }) => {
   const reducedMotion = useReducedMotion();
   const tiltX = useMotionValue(0);
@@ -41,7 +71,7 @@ const SkillCard: React.FC<{ category: string, skills: Skill[], index: number }> 
         <h3 className="text-lg sm:text-xl font-mono text-[#00FFFF]">{category}</h3>
         <ul className="skill-chip-list">
           {skills.map(skill => (
-            <li key={skill.id} className="skill-chip text-sm font-mono text-gray-300">{skill.name}</li>
+            <SkillChip key={skill.id} skill={skill} />
           ))}
         </ul>
       </motion.div>

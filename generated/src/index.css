@@ -260,3 +260,12 @@ h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover, p:hover {
   background-color: rgba(0,255,171,0.1);
   color: var(--color-neon-green);
 }
+
+/* Spring transforms are separate from CSS glow transitions. */
+.skill-category-card, .skill-chip-tilt, .floating-card { transform-style: preserve-3d; }
+.glass-panel.floating-card { transition: box-shadow 280ms ease-out, border-color 280ms ease-out; }
+.cyber-card-slot:hover > .floating-card, .skill-chip-slot:hover > .skill-chip-tilt,
+.skills-card-slot:hover > .skill-tilt-card { will-change: transform; }
+@media (prefers-reduced-motion: reduce) {
+  .glass-panel.floating-card { transition: none; }
+}

@@ -1,3 +1,4 @@
+import { useFloatingCard } from '../hooks/useFloatingCard';
 import React, { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Award, ExternalLink, Building2, CalendarDays } from 'lucide-react';
@@ -15,11 +16,16 @@ const IssuerLogo: React.FC<{ logo?: string; issuer: string }> = ({ logo, issuer 
     : <Building2 aria-hidden="true" className="w-5 h-5 shrink-0 text-[#00FFAB]" />;
 };
 
+const FloatingCertificate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const floating = useFloatingCard();
+  return <div className="h-full cyber-card-slot" {...floating.handlers}><motion.div style={floating.style} className="glass-panel cyber-pop-card floating-card h-full rounded-2xl border border-gray-800 overflow-hidden min-w-0 flex flex-col">{children}</motion.div></div>;
+};
+
 export const Certificates: React.FC = () => {
   const { data: { certificates } } = usePortfolio();
   const reducedMotion = useReducedMotion();
   return (
-  <SectionWrapper id="certificates">
+  <SectionWrapper id="certificates" stable>
     <h2 className="text-4xl sm:text-5xl font-bold mb-16 text-transparent bg-clip-text bg-gradient-to-r from-[#00FFAB] to-[#00FFFF] text-center w-full">&gt; Certificates &amp; Licenses</h2>
     {certificates.length === 0 ? (
       <div className="glass-panel rounded-2xl border border-gray-800 p-8 text-center text-gray-400 w-full">
@@ -28,7 +34,7 @@ export const Certificates: React.FC = () => {
     ) : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
       {certificates.map((certificate, index) => {
         const href = safeLink(certificate.credentialUrl, true);
-        return <motion.article key={certificate.id} initial={reducedMotion ? false : { opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, ease: "easeOut", delay: Math.min(index * 0.05, 0.2) }} className="min-w-0 h-full cyber-card-slot"><div className="glass-panel cyber-pop-card h-full rounded-2xl border border-gray-800 overflow-hidden min-w-0 flex flex-col">
+        return <motion.article key={certificate.id} initial={reducedMotion ? false : { opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15, margin: '0px 0px 160px 0px' }} transition={{ duration: 0.6, ease: "easeOut", delay: Math.min(index * 0.05, 0.2) }} className="min-w-0 h-full cyber-card-slot"><FloatingCertificate>
           {certificate.image ? <img src={certificate.image} alt={certificate.name} loading="lazy" className="w-full h-48 object-contain bg-black/30" /> : <div className="h-48 flex items-center justify-center bg-[#00FFAB]/5"><Award className="w-16 h-16 text-[#00FFAB]" /></div>}
           <div className="p-6 flex flex-col flex-1 gap-3 break-words">
             <h3 className="text-xl font-bold text-white">{certificate.name}</h3>
@@ -43,7 +49,7 @@ export const Certificates: React.FC = () => {
             </div>}
             {href && <a href={href} target="_blank" rel="noopener noreferrer" className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[#00FFAB]/40 text-[#00FFAB] hover:bg-[#00FFAB]/10"><ExternalLink className="w-4 h-4 shrink-0" />View Certificate</a>}
           </div>
-        </div></motion.article>;
+        </FloatingCertificate></motion.article>;
       })}
     </div>}
   </SectionWrapper>

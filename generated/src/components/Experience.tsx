@@ -20,7 +20,7 @@ export const Experience: React.FC = () => {
             key={exp.id}
             initial={reducedMotion ? false : { opacity: 0, y: 32 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.1 }}
+            viewport={{ once: true, amount: 0.12, margin: '0px 0px 160px 0px' }}
             transition={{ duration: 0.6, delay: Math.min(index * 0.05, 0.15), ease: "easeOut" }}
             className="mb-16 pl-10 relative group"
             style={{ transformStyle: 'preserve-3d', perspective: '1000px' }}

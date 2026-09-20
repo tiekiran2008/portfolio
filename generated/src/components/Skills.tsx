@@ -19,11 +19,11 @@ const SkillChip: React.FC<{ skill: Skill }> = ({ skill }) => {
     const px = Math.max(-0.5, Math.min(0.5, (event.clientX - rect.left) / Math.max(rect.width, 1) - 0.5));
     const py = Math.max(-0.5, Math.min(0.5, (event.clientY - rect.top) / Math.max(rect.height, 1) - 0.5));
     tx.set(-py * 20); ty.set(px * 20);
-    dx.set(px * 3); dy.set(py * 2 - 1); dz.set(5); zoom.set(1.015);
+    dx.set(px * 4); dy.set(py * 2 - 2); dz.set(12); zoom.set(1.04);
   };
   return (
-    <li className="skill-chip-slot" onPointerMove={move} onPointerLeave={reset} onPointerCancel={reset}
-      onPointerDown={event => { if (!reducedMotion && event.pointerType !== 'mouse') { tx.set(2); ty.set(-2); dz.set(2); dy.set(-1); zoom.set(1.005); } }}
+    <li className="skill-chip-slot" onPointerEnter={move} onPointerMove={move} onPointerLeave={reset} onPointerCancel={reset}
+      onPointerDown={event => { if (!reducedMotion && event.pointerType !== 'mouse') { tx.set(2); ty.set(-2); dz.set(5); dy.set(-1); zoom.set(1.02); } }}
       onPointerUp={event => { if (event.pointerType !== 'mouse') reset(); }}>
       <motion.span className="skill-chip skill-chip-tilt text-sm font-mono text-gray-300"
         style={reducedMotion ? undefined : { rotateX, rotateY, x, y, z, scale, transformStyle: 'preserve-3d' }}>

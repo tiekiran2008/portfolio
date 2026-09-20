@@ -18,8 +18,8 @@ const SkillChip: React.FC<{ skill: Skill }> = ({ skill }) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const px = Math.max(-0.5, Math.min(0.5, (event.clientX - rect.left) / Math.max(rect.width, 1) - 0.5));
     const py = Math.max(-0.5, Math.min(0.5, (event.clientY - rect.top) / Math.max(rect.height, 1) - 0.5));
-    tx.set(-py * 12); ty.set(px * 12);
-    dx.set(px * 2); dy.set(py - 1); dz.set(3); zoom.set(1.01);
+    tx.set(-py * 20); ty.set(px * 20);
+    dx.set(px * 3); dy.set(py * 2 - 1); dz.set(5); zoom.set(1.015);
   };
   return (
     <li className="skill-chip-slot" onPointerMove={move} onPointerLeave={reset} onPointerCancel={reset}

@@ -1,3 +1,4 @@
+import { useFloatingCard } from '../hooks/useFloatingCard';
 import { createPortal } from 'react-dom';
 import { safeLink } from '../lib/projectData';
 import React, { useState, useEffect, useRef } from 'react';
@@ -8,19 +9,20 @@ import { SectionWrapper } from './SectionWrapper';
 
 const ProjectCard: React.FC<{ project: Project, index: number, onClick: () => void }> = ({ project, index, onClick }) => {
   const reducedMotion = useReducedMotion();
+  const floating = useFloatingCard();
   return (
-  <motion.div initial={reducedMotion ? false : { opacity: 0, x: -60 }}
-    whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.15 }}
+  <motion.div initial={reducedMotion ? false : { opacity: 0, x: 60 }}
+    whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.15, margin: '0px 0px 180px 0px' }}
     transition={{ duration: 0.65, delay: Math.min(index * 0.08, 0.24), ease: 'easeOut' }}
-    className="min-w-0 h-full cyber-card-slot">
-  <button type="button" onClick={onClick} aria-haspopup="dialog" aria-label={`View details for ${project.title}`}
-    className="glass-panel cyber-pop-card min-w-0 w-full h-full min-h-[300px] p-6 sm:p-8 rounded-2xl text-left cursor-pointer flex flex-col gap-4 border border-gray-800 hover:border-[#00FFAB]/50 transition-colors focus-visible:outline-2 focus-visible:outline-[#00FFAB]">
+    className="min-w-0 h-full cyber-card-slot" {...floating.handlers}>
+  <motion.button style={floating.style} type="button" onClick={onClick} aria-haspopup="dialog" aria-label={`View details for ${project.title}`}
+    className="glass-panel cyber-pop-card floating-card min-w-0 w-full h-full min-h-[300px] p-6 sm:p-8 rounded-2xl text-left cursor-pointer flex flex-col gap-4 border border-gray-800 hover:border-[#00FFAB]/50 transition-colors focus-visible:outline-2 focus-visible:outline-[#00FFAB]">
     {project.image && <img src={project.image} alt="" loading="lazy" decoding="async" draggable={false} className="w-full h-32 object-cover rounded-lg pointer-events-none" />}
     <span className="text-2xl font-bold text-white [overflow-wrap:anywhere]">{project.title}</span>
     <span className="text-gray-400 text-sm line-clamp-3">{project.description}</span>
     <span className="flex flex-wrap gap-2 mt-auto">{project.techStack.slice(0, 3).map((tech, i) => <span key={i} className="max-w-full [overflow-wrap:anywhere] px-3 py-1 text-xs font-mono rounded-full bg-gray-900 border border-gray-700 text-gray-300">{tech}</span>)}</span>
     <span className="text-sm text-[#00FFAB]">View details →</span>
-  </button>
+  </motion.button>
   </motion.div>
   );
 };

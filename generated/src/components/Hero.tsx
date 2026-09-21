@@ -64,6 +64,7 @@ export const Hero: React.FC = () => {
           transition={{ duration: 0.8, ease: 'easeOut' }}
           className="z-10"
         >
+          <span className="signature-mark mb-5" aria-label="Kiran Kumar E monogram">KKE<span aria-hidden="true">✦</span></span>
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-4 tracking-tight">
             Hi, I'm <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00FFAB] to-[#00FFFF] text-glow-cyan">

@@ -20,7 +20,9 @@ const contactSchema = z.object({
 type ContactFormData = z.infer<typeof contactSchema>;
 
 export const Contact: React.FC = () => {
-  const { data, updateData } = usePortfolio();
+  const { updateData } = usePortfolio();
+  const [copyStatus, setCopyStatus] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [formData, setFormData] = useState<ContactFormData>({ name: '', email: '', message: '' });
   const [errors, setErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,6 +61,8 @@ export const Contact: React.FC = () => {
 
     // 2. Process submission
     setIsSubmitting(true);
+    setSubmitError('');
+    setIsSuccess(false);
     
     try {
       const newMessage = {
@@ -68,16 +72,10 @@ export const Contact: React.FC = () => {
         date: new Date().toISOString()
       };
       
-      // Try to save to Supabase if configured
-      if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        try {
-          const { error } = await supabase.from('messages').insert([newMessage]);
-          if (error) console.error("Supabase insert error:", error);
-        } catch (err) {
-          console.error("Failed to save to Supabase:", err);
-        }
-      }
-      
+      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) throw new Error('Contact form is unavailable. Please use the email link.');
+      const { error } = await supabase.from('messages').insert([newMessage]);
+      if (error) throw error;
+
       // Always update local state so UI reflects it immediately
       updateData(prev => ({ 
         messages: [...(prev.messages || []), { ...newMessage, id: Date.now().toString() }] 
@@ -88,7 +86,7 @@ export const Contact: React.FC = () => {
       setTimeout(() => setIsSuccess(false), 5000);
       
     } catch (err) {
-      console.error("Unexpected error during submission:", err);
+      setSubmitError('Your message could not be sent. Please retry or use the email link.');
     } finally {
       setIsSubmitting(false);
     }
@@ -113,6 +111,7 @@ export const Contact: React.FC = () => {
         &gt; Contact
       </h2>
 
+      {submitError && <p role="alert" className="text-red-300 mb-4">{submitError}</p>}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 w-full max-w-6xl mx-auto items-center">
         {/* Left Column: Info & Socials */}
         <div className="flex flex-col justify-center">
@@ -122,6 +121,8 @@ export const Contact: React.FC = () => {
           </p>
           
           <a href={`mailto:${profile.email}`} className="text-[#00FFAB] break-all mb-6">{profile.email}</a>
+          <button type="button" className="enhancement-button self-start mb-4" onClick={async () => { try { await navigator.clipboard.writeText(profile.email); setCopyStatus('Email copied'); } catch { setCopyStatus('Unable to copy. Please select the email address above.'); } }}>Copy email</button>
+          <p role="status" className="text-sm text-[#00FFAB] mb-4">{copyStatus}</p>
           <div className="flex flex-wrap gap-6" style={{ perspective: '1000px' }}>
             <motion.a
               href={profile.social.instagram}

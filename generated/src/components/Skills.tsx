@@ -1,9 +1,15 @@
-import React, { useEffect } from 'react';
+import { DetailDialog } from './DetailDialog';
+import React, { useEffect, useState, useCallback } from 'react';
 import { motion, useReducedMotion, useMotionValue, useSpring } from 'framer-motion';
 import { usePortfolio, Skill } from '../context/PortfolioContext';
 import { SectionWrapper } from './SectionWrapper';
 
 const SkillChip: React.FC<{ skill: Skill }> = ({ skill }) => {
+  const { data } = usePortfolio();
+  const [showProjects, setShowProjects] = useState(false);
+  const close = useCallback(() => setShowProjects(false), []);
+  const canonical = (name: string) => name.toLowerCase().replace(/\bbasics\b/g, '').replace(/[^a-z0-9]/g, '');
+  const matching = data.projects.filter(p => p.techStack.some(t => canonical(t) === canonical(skill.name)));
   const reducedMotion = useReducedMotion();
   const tx = useMotionValue(0), ty = useMotionValue(0);
   const dx = useMotionValue(0), dy = useMotionValue(0), dz = useMotionValue(0), zoom = useMotionValue(1);
@@ -25,10 +31,11 @@ const SkillChip: React.FC<{ skill: Skill }> = ({ skill }) => {
     <li className="skill-chip-slot" onPointerEnter={move} onPointerMove={move} onPointerLeave={reset} onPointerCancel={reset}
       onPointerDown={event => { if (!reducedMotion && event.pointerType !== 'mouse') { tx.set(2); ty.set(-2); dz.set(5); dy.set(-1); zoom.set(1.02); } }}
       onPointerUp={event => { if (event.pointerType !== 'mouse') reset(); }}>
-      <motion.span className="skill-chip skill-chip-tilt text-sm font-mono text-gray-300"
+      <motion.button type="button" onClick={() => setShowProjects(true)} aria-label={`See projects using ${skill.name}`} className="skill-chip skill-chip-tilt text-sm font-mono text-gray-300"
         style={reducedMotion ? undefined : { rotateX, rotateY, x, y, z, scale, transformStyle: 'preserve-3d' }}>
         {skill.name}
-      </motion.span>
+      </motion.button>
+      {showProjects && <DetailDialog title={`Projects using ${skill.name}`} onClose={close}>{matching.length ? <ul className="space-y-3">{matching.map(project => <li key={project.id}><button className="enhancement-button w-full text-left" type="button" onClick={() => { setShowProjects(false); window.setTimeout(() => window.dispatchEvent(new CustomEvent('portfolio:open-project', { detail: project.id })), 0); }}>{project.title} →</button></li>)}</ul> : <p className="text-gray-300">No published project currently lists this skill in its technology stack.</p>}</DetailDialog>}
     </li>
   );
 };

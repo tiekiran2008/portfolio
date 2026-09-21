@@ -7,6 +7,12 @@ export interface Project {
   githubLink: string;
   image?: string;
   features?: string[];
+  featured?: boolean;
+  videoUrl?: string;
+  problem?: string;
+  contribution?: string;
+  result?: string;
+  architecture?: { label: string; description: string }[];
 }
 
 export interface Skill {

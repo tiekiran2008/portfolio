@@ -39,7 +39,7 @@ export const Certificates: React.FC = () => {
     ) : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
       {certificates.map((certificate, index) => {
         const href = safeLink(certificate.credentialUrl, true);
-        return <motion.article key={certificate.id} initial={reducedMotion ? false : { opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15, margin: '0px 0px 160px 0px' }} transition={{ duration: 0.6, ease: "easeOut", delay: Math.min(index * 0.05, 0.2) }} className="min-w-0 h-full cyber-card-slot"><FloatingCertificate>
+        return <motion.article key={certificate.id} initial={reducedMotion ? false : { opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.1, margin: '80px 0px 80px 0px' }} transition={{ duration: 0.6, ease: "easeOut", delay: Math.min(index * 0.05, 0.2) }} className="min-w-0 h-full cyber-card-slot"><FloatingCertificate>
           <button type="button" className="text-left w-full" aria-label={`Open ${certificate.name}`} onClick={() => { setSelected(certificate); setZoom(false); }}>
           {certificate.image ? <img src={certificate.image} alt={certificate.name} loading="lazy" className="w-full h-48 object-contain bg-black/30" /> : <div className="h-48 flex items-center justify-center bg-[#00FFAB]/5"><Award className="w-16 h-16 text-[#00FFAB]" /></div>}
           </button>
@@ -54,8 +54,10 @@ export const Certificates: React.FC = () => {
                 {certificate.skills.map((skill, skillIndex) => <li key={skillIndex} className="max-w-full rounded-md border border-[#00FFAB]/20 bg-[#00FFAB]/5 px-3 py-1 text-sm text-[#00FFAB] [overflow-wrap:anywhere]">{skill}</li>)}
               </ul>
             </div>}
+            <div className="mt-auto pt-2 flex flex-col gap-3">
             <button type="button" className="enhancement-button" onClick={() => { setSelected(certificate); setZoom(false); }}>Explore certificate</button>
-            {href && <a href={href} target="_blank" rel="noopener noreferrer" className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[#00FFAB]/40 text-[#00FFAB] hover:bg-[#00FFAB]/10"><ExternalLink className="w-4 h-4 shrink-0" />View Certificate</a>}
+            {href && <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[#00FFAB]/40 text-[#00FFAB] hover:bg-[#00FFAB]/10"><ExternalLink className="w-4 h-4 shrink-0" />View Certificate</a>}
+            </div>
           </div>
         </FloatingCertificate></motion.article>;
       })}

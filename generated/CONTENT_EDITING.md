@@ -81,3 +81,17 @@ resume; save; visit the portfolio; hard refresh; open an incognito window; check
 four sections. Edit then delete the test records and save again. Verify removed items
 stay removed. Test the new project's popup and the resume button. Confirm anonymous
 and non-owner writes fail, then regression-check admin login/password recovery.
+
+## Project storytelling and interactive additions
+
+In Admin → Projects, mark one Featured build and optionally add a demo video URL,
+Problem, My contribution, Result, and ordered architecture components. Save changes
+using the existing save button. These fields persist in portfolio_content.content;
+no SQL migration is needed. Use real measured results. Empty fields stay hidden.
+Direct MP4/WebM links play on demand in the project popup; other video links open
+in a new tab. Videos are URL-based, not uploaded to the image-only asset bucket.
+Architecture components form an ordered flow; visitors select a component for its role.
+
+Skill chips open matching projects by technology name (ignoring punctuation, case
+and “basics”). Update a project's Tech stack to associate additional skills.
+Certificates can be opened, zoomed and verified through their credential links.

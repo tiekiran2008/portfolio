@@ -1,3 +1,4 @@
+import { ProjectStory } from './ProjectStory';
 import { useFloatingCard } from '../hooks/useFloatingCard';
 import { createPortal } from 'react-dom';
 import { safeLink } from '../lib/projectData';
@@ -17,11 +18,12 @@ const ProjectCard: React.FC<{ project: Project, index: number, onClick: () => vo
     className="min-w-0 h-full cyber-card-slot" {...floating.handlers}>
   <motion.button style={floating.style} type="button" onClick={onClick} aria-haspopup="dialog" aria-label={`View details for ${project.title}`}
     className="glass-panel cyber-pop-card floating-card min-w-0 w-full h-full min-h-[300px] p-6 sm:p-8 rounded-2xl text-left cursor-pointer flex flex-col gap-4 border border-gray-800 hover:border-[#00FFAB]/50 transition-colors focus-visible:outline-2 focus-visible:outline-[#00FFAB]">
+    {project.featured && <span className="text-xs font-mono text-[#00FFAB]">✦ FEATURED BUILD</span>}
     {project.image && <img src={project.image} alt="" loading="lazy" decoding="async" draggable={false} className="w-full h-32 object-cover rounded-lg pointer-events-none" />}
     <span className="text-2xl font-bold text-white [overflow-wrap:anywhere]">{project.title}</span>
     <span className="text-gray-400 text-sm line-clamp-3">{project.description}</span>
     <span className="flex flex-wrap gap-2 mt-auto">{project.techStack.slice(0, 3).map((tech, i) => <span key={i} className="max-w-full [overflow-wrap:anywhere] px-3 py-1 text-xs font-mono rounded-full bg-gray-900 border border-gray-700 text-gray-300">{tech}</span>)}</span>
-    <span className="text-sm text-[#00FFAB]">View details →</span>
+    <span className="text-sm text-[#00FFAB]">{project.videoUrl ? 'View details & demo →' : 'View details →'}</span>
   </motion.button>
   </motion.div>
   );
@@ -30,6 +32,15 @@ const ProjectCard: React.FC<{ project: Project, index: number, onClick: () => vo
 export const Projects: React.FC = () => {
   const { data } = usePortfolio();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  useEffect(() => {
+    const open = (event: Event) => {
+      const id = (event as CustomEvent<string>).detail;
+      const project = data.projects.find(p => p.id === id);
+      if (project) setSelectedProject(project);
+    };
+    window.addEventListener('portfolio:open-project', open);
+    return () => window.removeEventListener('portfolio:open-project', open);
+  }, [data.projects]);
   const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!selectedProject) return;
@@ -111,6 +122,7 @@ export const Projects: React.FC = () => {
                 {selectedProject.description}
               </p>
 
+              <ProjectStory key={selectedProject.id} project={selectedProject} />
               {Boolean(selectedProject.features?.length) && <div className="mb-8">
                 <h3 className="text-xl text-white font-bold mb-3">Features</h3>
                 <ul className="list-disc pl-5 space-y-2 text-gray-300">{selectedProject.features!.map((feature, index) => <li key={index}>{feature}</li>)}</ul>

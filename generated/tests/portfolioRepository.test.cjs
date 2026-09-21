@@ -43,3 +43,16 @@ test('network load errors suggest retrying without blaming SQL or discarding edi
  const {api}=setup(false,{message:'TypeError: Failed to fetch'});
  await assert.rejects(api.loadContent(),/Unable to reach Supabase.*unsaved edits have been kept/);
 });
+
+test('project story survives saves and clearing', async()=>{
+ const {api,defaults}=setup();
+ const project={id:'story',title:'Build',description:'Existing',techStack:['Python'],githubLink:'',demoLink:'',featured:true,videoUrl:'https://example.com/demo.mp4',problem:'Problem',contribution:'Contribution',result:'Measured result',architecture:[{label:'API',description:'Routes requests'}]};
+ await api.persistContent({...defaults,projects:[project]},0);
+ const saved=await api.loadContent();
+ for(const field of ['featured','videoUrl','problem','contribution','result']) assert.equal(saved.content.projects[0][field],project[field]);
+ assert.equal(saved.content.projects[0].architecture[0].description,'Routes requests');
+ Object.assign(saved.content.projects[0],{featured:false,videoUrl:'',problem:'',contribution:'',result:'',architecture:[]});
+ await api.persistContent(saved.content,1);
+ assert.equal((await api.loadContent()).content.projects[0].architecture.length,0);
+ await assert.rejects(api.persistContent({...defaults,projects:[{...project,videoUrl:'javascript:alert(1)'}]},2),/HTTP/);
+});

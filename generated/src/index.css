@@ -272,3 +272,11 @@ h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover, p:hover {
 
 .skill-chip-list { transform-style: preserve-3d; }
 .skill-chip-slot:hover { z-index: 3; }
+
+/* Small additions share the existing cyber palette and spacing. */
+.enhancement-button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border: 1px solid rgba(0,255,171,.35); border-radius: .75rem; padding: .65rem 1rem; min-height: 44px; color: #00ffab; overflow-wrap: anywhere; transition: background-color 220ms ease-out, box-shadow 220ms ease-out; }
+.enhancement-button:hover, .enhancement-button[aria-pressed="true"] { background: rgba(0,255,171,.1); box-shadow: 0 0 14px rgba(0,255,171,.12); }
+.enhancement-button:focus-visible, .skill-chip:focus-visible { outline: 2px solid #00ffff; outline-offset: 3px; }
+.enhancement-tag { max-width: 100%; overflow-wrap: anywhere; border: 1px solid rgba(0,255,171,.25); border-radius: .5rem; padding: .3rem .7rem; color: #00ffab; }
+.signature-mark { display: inline-flex; align-items: center; gap: .7rem; padding: .5rem .8rem; border: 1px solid rgba(0,255,171,.3); border-radius: .75rem; font-family: monospace; letter-spacing: .15em; color: #00ffff; background: rgba(0,255,171,.04); }
+.signature-mark span { color: #00ffab; }

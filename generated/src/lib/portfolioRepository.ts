@@ -43,7 +43,7 @@ export function validateContent(content: EditableContent) {
     if (value?.trim() && !safeLink(value, true)) throw new Error('Resume and credential links must be valid HTTPS URLs or local file paths.');
   }
   for (const project of content.projects) {
-    for (const value of [project.githubLink, project.demoLink]) {
+    for (const value of [project.githubLink, project.demoLink, project.videoUrl]) {
       if (value?.trim() && value !== '#' && !safeLink(value)) throw new Error(`${project.title}: use a complete HTTP(S) URL or leave the link empty.`);
     }
   }

@@ -40,8 +40,8 @@ export const Certificates: React.FC = () => {
       {certificates.map((certificate, index) => {
         const href = safeLink(certificate.credentialUrl, true);
         return <motion.article key={certificate.id} initial={reducedMotion ? false : { opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, amount: 0.1, margin: '80px 0px 80px 0px' }} transition={{ duration: 0.6, ease: "easeOut", delay: Math.min(index * 0.05, 0.2) }} className="min-w-0 h-full cyber-card-slot"><FloatingCertificate>
-          <button type="button" className="text-left w-full" aria-label={`Open ${certificate.name}`} onClick={() => { setSelected(certificate); setZoom(false); }}>
-          {certificate.image ? <img src={certificate.image} alt={certificate.name} loading="lazy" className="w-full h-48 object-contain bg-black/30" /> : <div className="h-48 flex items-center justify-center bg-[#00FFAB]/5"><Award className="w-16 h-16 text-[#00FFAB]" /></div>}
+          <button type="button" className="text-left w-full h-48 flex items-center justify-center bg-black/30" aria-label={`Open ${certificate.name}`} onClick={() => { setSelected(certificate); setZoom(false); }}>
+          {certificate.image ? <img src={certificate.image} alt={certificate.name} loading="lazy" className="mx-auto max-w-full max-h-48 w-auto h-auto object-contain" /> : <div className="h-48 flex items-center justify-center bg-[#00FFAB]/5"><Award className="w-16 h-16 text-[#00FFAB]" /></div>}
           </button>
           <div className="p-6 flex flex-col flex-1 gap-3 break-words">
             <h3 className="text-xl font-bold text-white">{certificate.name}</h3>
@@ -66,7 +66,8 @@ export const Certificates: React.FC = () => {
   {selected && <DetailDialog title={selected.name} onClose={close}>
     <div className="flex items-center gap-2 text-gray-300 mb-2"><IssuerLogo logo={selected.logo} issuer={selected.issuer} />{selected.issuer}</div>
     <p className="text-[#00FFFF] mb-4">{selected.date}</p>
-    {selected.image && <><button type="button" className="enhancement-button mb-3" aria-pressed={zoom} onClick={() => setZoom(!zoom)}>{zoom ? 'Fit image' : 'Zoom image'}</button><div className="overflow-auto max-h-[55vh] rounded-xl bg-black/40"><img src={selected.image} alt={selected.name} className={zoom ? 'max-w-none w-[150%]' : 'w-full object-contain'} /></div></>}
+    {selected.image && <><button type="button" className="enhancement-button mb-3" aria-pressed={zoom} onClick={() => setZoom(!zoom)}>{zoom ? 'Fit image' : 'Original size'}</button><div className="overflow-auto max-h-[55vh] rounded-xl bg-black/40"><img src={selected.image} alt={selected.name} className={zoom ? 'max-w-none w-auto h-auto mx-auto' : 'max-w-full w-auto h-auto mx-auto object-contain'} /></div></>}
+    {safeLink(selected.image, true) && <a className="enhancement-button my-3" href={safeLink(selected.image, true)} target="_blank" rel="noopener noreferrer">Open original image ↗</a>}
     {selected.description && <p className="text-gray-300 whitespace-pre-wrap my-4">{selected.description}</p>}
     {!!selected.skills?.length && <ul className="flex flex-wrap gap-2 my-4">{selected.skills.map((skill, i) => <li key={i} className="enhancement-tag">{skill}</li>)}</ul>}
     {safeLink(selected.credentialUrl, true) && <a className="enhancement-button" href={safeLink(selected.credentialUrl, true)} target="_blank" rel="noopener noreferrer">Verify credential ↗</a>}
